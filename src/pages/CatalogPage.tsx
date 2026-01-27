@@ -7,7 +7,8 @@ import {
   Flame,
   Percent,
   Plus,
-  PackageX
+  PackageX,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,30 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useCart } from '@/contexts/CartContext';
-
-type Platform = 'PS4' | 'PS5' | 'Xbox One' | 'Xbox Series X/S';
-
-interface Game {
-  id: string;
-  title: string;
-  price: number;
-  originalPrice?: number;
-  platform: Platform[];
-  categories: string[];
-  description?: string;
-  image?: string;
-}
-
-const SAMPLE_GAMES: Game[] = [
-  { id: '1', title: 'The Last of Us Part II', price: 3499, originalPrice: 4999, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Эпическое приключение в постапокалиптическом мире' },
-  { id: '2', title: 'God of War Ragnarök', price: 4499, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Продолжение легендарной саги' },
-  { id: '3', title: 'Spider-Man 2', price: 4999, platform: ['PS5'], categories: ['popular', 'exclusive'], description: 'Новые приключения Человека-паука' },
-  { id: '4', title: 'Horizon Forbidden West', price: 2999, originalPrice: 3999, platform: ['PS4', 'PS5'], categories: ['sale'], description: 'Откройте западные земли' },
-  { id: '5', title: 'Ghost of Tsushima', price: 2499, originalPrice: 3499, platform: ['PS4', 'PS5'], categories: ['sale', 'popular'], description: 'Станьте самураем на острове Цусима' },
-  { id: '6', title: 'Demon\'s Souls', price: 3999, platform: ['PS5'], categories: ['exclusive'], description: 'Ремейк культовой RPG' },
-  { id: '7', title: 'Ratchet & Clank', price: 2799, originalPrice: 3999, platform: ['PS5'], categories: ['sale'], description: 'Межпространственные приключения' },
-  { id: '8', title: 'Returnal', price: 2299, originalPrice: 4499, platform: ['PS5'], categories: ['sale'], description: 'Рогалик от третьего лица' },
-];
+import { getGames, type Game } from '@/services/api';
 
 interface CatalogPageProps {
   isAdmin?: boolean;
@@ -46,10 +24,10 @@ interface CatalogPageProps {
 
 const PLATFORM_FILTERS = [
   { id: 'all', label: 'Все', icon: Filter },
-  { id: 'ps5', label: 'PS5', icon: Gamepad2, color: 'text-blue-400' },
-  { id: 'ps4', label: 'PS4', icon: Gamepad2, color: 'text-indigo-400' },
-  { id: 'xbox-series', label: 'Xbox Series', icon: Gamepad2, color: 'text-green-500' },
-  { id: 'xbox-one', label: 'Xbox One', icon: Gamepad2, color: 'text-green-400' },
+  { id: 'PS5', label: 'PS5', icon: Gamepad2, color: 'text-blue-400' },
+  { id: 'PS4', label: 'PS4', icon: Gamepad2, color: 'text-indigo-400' },
+  { id: 'Xbox Series X/S', label: 'Xbox Series', icon: Gamepad2, color: 'text-green-500' },
+  { id: 'Xbox One', label: 'Xbox One', icon: Gamepad2, color: 'text-green-400' },
   { id: 'popular', label: 'Популярные', icon: Star, color: 'text-yellow-400' },
   { id: 'exclusive', label: 'Эксклюзивы', icon: Flame, color: 'text-purple-400' },
   { id: 'sale', label: 'Распродажа', icon: Percent, color: 'text-red-400' },
@@ -61,23 +39,27 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
-  const { addItem } = useCart() as { addItem: (item: { id: string; title: string; price: number; type: string; image?: string }) => void };
+  const [error, setError] = useState<string | null>(null);
+  const { addItem } = useCart();
+
+  // Загрузка игр с сервера
+  const loadGames = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getGames();
+      setGames(data);
+    } catch (err) {
+      console.error('Error loading games:', err);
+      setError('Не удалось загрузить каталог. Проверьте подключение к базе данных.');
+      toast.error('Ошибка загрузки каталога');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Загружаем игры из localStorage или используем примеры
-    const savedGames = localStorage.getItem('village_games');
-    if (savedGames) {
-      try {
-        const parsed = JSON.parse(savedGames);
-        setGames(parsed);
-      } catch {
-        setGames(SAMPLE_GAMES);
-      }
-    } else {
-      setGames(SAMPLE_GAMES);
-      localStorage.setItem('village_games', JSON.stringify(SAMPLE_GAMES));
-    }
-    setIsLoading(false);
+    loadGames();
   }, []);
 
   useEffect(() => {
@@ -91,10 +73,9 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
 
     if (activeFilter !== 'all') {
       filtered = filtered.filter(game => {
-        if (activeFilter === 'ps5') return game.platform.includes('PS5');
-        if (activeFilter === 'ps4') return game.platform.includes('PS4');
-        if (activeFilter === 'xbox-series') return game.platform.includes('Xbox Series X/S');
-        if (activeFilter === 'xbox-one') return game.platform.includes('Xbox One');
+        if (['PS5', 'PS4', 'Xbox Series X/S', 'Xbox One'].includes(activeFilter)) {
+          return game.platform.includes(activeFilter);
+        }
         return game.categories.includes(activeFilter);
       });
     }
@@ -103,7 +84,6 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
   }, [games, searchQuery, activeFilter]);
 
   const handleAddToCart = (game: Game) => {
-    // Определяем тип игры по платформе для иконки
     const isXbox = game.platform.some(p => p.includes('Xbox'));
     addItem({
       id: game.id,
@@ -128,7 +108,34 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-[#d4af37]">Загрузка...</div>
+        <div className="text-[#d4af37] flex items-center gap-2">
+          <RefreshCw className="w-5 h-5 animate-spin" />
+          Загрузка каталога...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black p-4 flex items-center justify-center">
+        <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-red-500/30 max-w-md">
+          <CardContent className="p-8 text-center">
+            <PackageX className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">Ошибка загрузки</h2>
+            <p className="text-slate-400 mb-4">{error}</p>
+            <p className="text-slate-500 text-sm mb-4">
+              Убедитесь, что база данных Timeweb настроена правильно.
+            </p>
+            <Button 
+              onClick={loadGames}
+              className="bg-gradient-to-r from-[#d4af37] to-[#cd7f32] text-black"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Попробовать снова
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -184,13 +191,15 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
         {filteredGames.length === 0 && (
           <div className="text-center py-12">
             <PackageX className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg mb-2">Каталог пуст</p>
-            <p className="text-slate-500 text-sm mb-4">
-              {isAdmin 
-                ? 'Добавьте товары через админ-панель' 
-                : 'Товары скоро появятся'}
+            <p className="text-slate-400 text-lg mb-2">
+              {games.length === 0 ? 'Каталог пуст' : 'Ничего не найдено'}
             </p>
-            {isAdmin && (
+            <p className="text-slate-500 text-sm mb-4">
+              {games.length === 0 && isAdmin
+                ? 'Добавьте товары через админ-панель' 
+                : 'Попробуйте изменить фильтры'}
+            </p>
+            {games.length === 0 && isAdmin && (
               <Button 
                 onClick={() => window.location.href = '/admin'}
                 className="bg-gradient-to-r from-[#d4af37] to-[#cd7f32] text-black"
@@ -223,9 +232,9 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                   )}
                   {/* Бейджи */}
                   <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                    {game.categories.includes('sale') && game.originalPrice && (
+                    {game.categories.includes('sale') && game.original_price && (
                       <Badge className="bg-red-500 text-white text-xs">
-                        -{Math.round((1 - game.price / game.originalPrice) * 100)}%
+                        -{Math.round((1 - game.price / game.original_price) * 100)}%
                       </Badge>
                     )}
                     {game.categories.includes('exclusive') && (
@@ -254,9 +263,9 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                 <CardContent className="pt-0">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      {game.originalPrice && (
+                      {game.original_price && (
                         <span className="text-slate-500 line-through text-sm mr-2">
-                          {game.originalPrice} ₽
+                          {game.original_price} ₽
                         </span>
                       )}
                       <span className="text-[#d4af37] text-lg font-bold">{game.price} ₽</span>

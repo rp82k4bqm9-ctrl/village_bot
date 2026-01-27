@@ -8,10 +8,8 @@ import {
   Save,
   X,
   BarChart3,
-  Download,
-  Upload,
-  Copy,
-  CheckCircle
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,26 +20,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { getGames, addGame, updateGame, deleteGame, type Game } from '@/services/api';
 
 type Platform = 'PS4' | 'PS5' | 'Xbox One' | 'Xbox Series X/S';
-
-interface Game {
-  id: string;
-  title: string;
-  price: number;
-  originalPrice?: number;
-  platform: Platform[];
-  categories: string[];
-  description?: string;
-  image?: string;
-}
-
-const INITIAL_GAMES: Game[] = [
-  { id: '1', title: 'The Last of Us Part II', price: 3499, originalPrice: 4999, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Эпическое приключение в постапокалиптическом мире' },
-  { id: '2', title: 'God of War Ragnarök', price: 4499, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Продолжение легендарной саги' },
-  { id: '3', title: 'Spider-Man 2', price: 4999, platform: ['PS5'], categories: ['popular', 'exclusive'], description: 'Новые приключения Человека-паука' },
-  { id: '4', title: 'Horizon Forbidden West', price: 2999, originalPrice: 3999, platform: ['PS4', 'PS5'], categories: ['sale'], description: 'Откройте западные земли' },
-];
 
 const PLATFORMS: { id: Platform; label: string; color: string }[] = [
   { id: 'PS4', label: 'PS4', color: 'text-indigo-400' },
@@ -54,97 +35,107 @@ export function AdminPage() {
   const [games, setGames] = useState<Game[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<Game | null>(null);
-  const [showExportDialog, setShowExportDialog] = useState(false);
-  const [showImportDialog, setShowImportDialog] = useState(false);
-  const [exportData, setExportData] = useState('');
-  const [importData, setImportData] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Game>>({
     title: '',
     price: 0,
-    originalPrice: undefined,
+    original_price: undefined,
     platform: [],
     categories: [],
     description: '',
     image: ''
   });
 
-  useEffect(() => {
-    const savedGames = localStorage.getItem('village_games');
-    if (savedGames) {
-      setGames(JSON.parse(savedGames));
-    } else {
-      setGames(INITIAL_GAMES);
-      localStorage.setItem('village_games', JSON.stringify(INITIAL_GAMES));
+  // Загрузка игр с сервера
+  const loadGames = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getGames();
+      setGames(data);
+    } catch (err) {
+      console.error('Error loading games:', err);
+      setError('Не удалось загрузить каталог. Проверьте подключение к базе данных.');
+      toast.error('Ошибка загрузки данных');
+    } finally {
+      setIsLoading(false);
     }
-  }, []);
-
-  const saveGames = (newGames: Game[]) => {
-    setGames(newGames);
-    localStorage.setItem('village_games', JSON.stringify(newGames));
   };
 
-  const handleAddGame = () => {
+  useEffect(() => {
+    loadGames();
+  }, []);
+
+  const handleAddGame = async () => {
     if (!formData.title || !formData.price) {
       toast.error('Заполните название и цену');
       return;
     }
 
-    const newGame: Game = {
-      id: Date.now().toString(),
-      title: formData.title,
-      price: Number(formData.price),
-      originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
-      platform: formData.platform || [],
-      categories: formData.categories || [],
-      description: formData.description,
-      image: formData.image
-    };
-
-    saveGames([...games, newGame]);
-    setIsAddDialogOpen(false);
-    resetForm();
-    toast.success('Игра добавлена!');
+    try {
+      const newGame = await addGame({
+        title: formData.title,
+        price: Number(formData.price),
+        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        platform: formData.platform || [],
+        categories: formData.categories || [],
+        description: formData.description || '',
+        image: formData.image || ''
+      });
+      
+      setGames([newGame, ...games]);
+      setIsAddDialogOpen(false);
+      resetForm();
+      toast.success('Игра добавлена!');
+    } catch (err) {
+      toast.error('Ошибка добавления игры');
+    }
   };
 
-  const handleEditGame = () => {
+  const handleEditGame = async () => {
     if (!editingGame || !formData.title || !formData.price) {
       toast.error('Заполните название и цену');
       return;
     }
 
-    const updatedGames = games.map(g => 
-      g.id === editingGame.id 
-        ? { 
-            ...g, 
-            title: formData.title!,
-            price: Number(formData.price),
-            originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
-            platform: formData.platform || [],
-            categories: formData.categories || [],
-            description: formData.description,
-            image: formData.image
-          }
-        : g
-    );
-
-    saveGames(updatedGames);
-    setEditingGame(null);
-    resetForm();
-    toast.success('Изменения сохранены!');
+    try {
+      const updated = await updateGame(editingGame.id, {
+        title: formData.title,
+        price: Number(formData.price),
+        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        platform: formData.platform || [],
+        categories: formData.categories || [],
+        description: formData.description || '',
+        image: formData.image || ''
+      });
+      
+      setGames(games.map(g => g.id === editingGame.id ? updated : g));
+      setEditingGame(null);
+      resetForm();
+      toast.success('Изменения сохранены!');
+    } catch (err) {
+      toast.error('Ошибка сохранения');
+    }
   };
 
-  const handleDeleteGame = (id: string) => {
+  const handleDeleteGame = async (id: string) => {
     if (!confirm('Удалить эту игру?')) return;
-    saveGames(games.filter(g => g.id !== id));
-    toast.success('Игра удалена!');
+    
+    try {
+      await deleteGame(id);
+      setGames(games.filter(g => g.id !== id));
+      toast.success('Игра удалена!');
+    } catch (err) {
+      toast.error('Ошибка удаления');
+    }
   };
 
   const resetForm = () => {
     setFormData({
       title: '',
       price: 0,
-      originalPrice: undefined,
+      original_price: undefined,
       platform: [],
       categories: [],
       description: '',
@@ -173,36 +164,6 @@ export function AdminPage() {
     setFormData({ ...formData, categories: updated });
   };
 
-  // Экспорт данных
-  const handleExport = () => {
-    const data = JSON.stringify(games, null, 2);
-    setExportData(data);
-    setShowExportDialog(true);
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(exportData);
-    setCopied(true);
-    toast.success('Скопировано в буфер обмена!');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // Импорт данных
-  const handleImport = () => {
-    try {
-      const parsed = JSON.parse(importData);
-      if (!Array.isArray(parsed)) {
-        throw new Error('Данные должны быть массивом');
-      }
-      saveGames(parsed);
-      setShowImportDialog(false);
-      setImportData('');
-      toast.success('Каталог импортирован!');
-    } catch (error) {
-      toast.error('Ошибка импорта: неверный формат JSON');
-    }
-  };
-
   // Статистика
   const stats = {
     total: games.length,
@@ -215,6 +176,41 @@ export function AdminPage() {
     sale: games.filter(g => g.categories.includes('sale')).length,
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-[#d4af37] flex items-center gap-2">
+          <RefreshCw className="w-5 h-5 animate-spin" />
+          Загрузка...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-black p-4 flex items-center justify-center">
+        <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-red-500/30 max-w-md">
+          <CardContent className="p-8 text-center">
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">Ошибка подключения</h2>
+            <p className="text-slate-400 mb-4">{error}</p>
+            <p className="text-slate-500 text-sm mb-4">
+              Проверьте файл TIMEWEB_SETUP.md для настройки базы данных.
+            </p>
+            <Button 
+              onClick={loadGames}
+              className="bg-gradient-to-r from-[#d4af37] to-[#cd7f32] text-black"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Попробовать снова
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black p-4 pb-24">
       <div className="max-w-6xl mx-auto">
@@ -224,7 +220,7 @@ export function AdminPage() {
             <Settings className="w-7 h-7 lg:w-8 lg:h-8 text-rose-400" />
             Админ-панель
           </h1>
-          <p className="text-slate-400 text-sm">Управление каталогом игр</p>
+          <p className="text-slate-400 text-sm">Управление каталогом игр (Timeweb Cloud PostgreSQL)</p>
         </div>
 
         {/* Статистика */}
@@ -270,40 +266,15 @@ export function AdminPage() {
             Добавить игру
           </Button>
           <Button 
-            onClick={handleExport}
+            onClick={loadGames}
             variant="outline"
             className="border-slate-600 text-slate-300 hover:bg-slate-800"
             size="sm"
           >
-            <Download className="w-4 h-4 mr-2" />
-            Экспорт
-          </Button>
-          <Button 
-            onClick={() => setShowImportDialog(true)}
-            variant="outline"
-            className="border-slate-600 text-slate-300 hover:bg-slate-800"
-            size="sm"
-          >
-            <Upload className="w-4 h-4 mr-2" />
-            Импорт
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Обновить
           </Button>
         </div>
-
-        {/* Инструкция по переносу */}
-        <Card className="bg-gradient-to-br from-blue-900/20 to-blue-800/20 border border-blue-500/30 mb-6">
-          <CardContent className="p-4">
-            <h3 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Как перенести данные на другое устройство?
-            </h3>
-            <ol className="text-slate-400 text-sm space-y-1 list-decimal list-inside">
-              <li>Нажмите <b>"Экспорт"</b> — скопируйте код</li>
-              <li>На другом устройстве откройте админ-панель</li>
-              <li>Нажмите <b>"Импорт"</b> — вставьте код</li>
-              <li>Готово! Все товары перенесены</li>
-            </ol>
-          </CardContent>
-        </Card>
 
         {/* Список игр */}
         <div className="space-y-3">
@@ -311,7 +282,14 @@ export function AdminPage() {
           {games.length === 0 ? (
             <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700">
               <CardContent className="p-8 text-center">
-                <p className="text-slate-400">Каталог пуст. Добавьте первую игру!</p>
+                <p className="text-slate-400 mb-4">Каталог пуст. Добавьте первую игру!</p>
+                <Button 
+                  onClick={() => setIsAddDialogOpen(true)}
+                  className="bg-gradient-to-r from-rose-500 to-rose-600"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Добавить игру
+                </Button>
               </CardContent>
             </Card>
           ) : (
@@ -346,8 +324,8 @@ export function AdminPage() {
                         </div>
                         <h3 className="text-white font-medium truncate">{game.title}</h3>
                         <p className="text-[#d4af37] font-bold">{game.price} ₽</p>
-                        {game.originalPrice && (
-                          <p className="text-slate-500 line-through text-sm">{game.originalPrice} ₽</p>
+                        {game.original_price && (
+                          <p className="text-slate-500 line-through text-sm">{game.original_price} ₽</p>
                         )}
                         {game.description && (
                           <p className="text-slate-400 text-sm mt-1 line-clamp-2">{game.description}</p>
@@ -425,78 +403,6 @@ export function AdminPage() {
             />
           </DialogContent>
         </Dialog>
-
-        {/* Диалог экспорта */}
-        <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
-          <DialogContent className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700 text-white max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Download className="w-5 h-5 text-green-400" />
-                Экспорт данных
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-slate-400 text-sm">
-                Скопируйте этот код и вставьте на другом устройстве через "Импорт"
-              </p>
-              <Textarea
-                value={exportData}
-                readOnly
-                className="bg-[#0d0d0d] border-slate-600 text-slate-300 font-mono text-xs min-h-[200px]"
-              />
-              <Button 
-                onClick={copyToClipboard}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white"
-              >
-                {copied ? <CheckCircle className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-                {copied ? 'Скопировано!' : 'Копировать в буфер'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Диалог импорта */}
-        <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-          <DialogContent className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700 text-white max-w-lg">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Upload className="w-5 h-5 text-blue-400" />
-                Импорт данных
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p className="text-slate-400 text-sm">
-                Вставьте код экспорта с другого устройства
-              </p>
-              <Textarea
-                value={importData}
-                onChange={(e) => setImportData(e.target.value)}
-                placeholder="Вставьте JSON данные здесь..."
-                className="bg-[#0d0d0d] border-slate-600 text-white font-mono text-xs min-h-[200px]"
-              />
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleImport}
-                  disabled={!importData.trim()}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Импортировать
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setShowImportDialog(false);
-                    setImportData('');
-                  }}
-                  className="border-slate-600 text-slate-300"
-                >
-                  Отмена
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );
@@ -541,8 +447,8 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
           <Label className="text-slate-300">Старая цена (₽)</Label>
           <Input
             type="number"
-            value={formData.originalPrice || ''}
-            onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value ? Number(e.target.value) : undefined })}
+            value={formData.original_price || ''}
+            onChange={(e) => setFormData({ ...formData, original_price: e.target.value ? Number(e.target.value) : undefined })}
             placeholder="4999"
             className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
           />
