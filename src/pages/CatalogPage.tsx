@@ -40,19 +40,19 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
   const { addItem } = useCart() as { addItem: (item: { id: string; title: string; price: number; type: string; image?: string }) => void };
 
   useEffect(() => {
-    // Загружаем игры ТОЛЬКО из localStorage (без sample games!)
+    // Загружаем игры из localStorage или используем примеры
     const savedGames = localStorage.getItem('village_games');
     if (savedGames) {
       try {
         const parsed = JSON.parse(savedGames);
         setGames(parsed);
       } catch {
-        setGames([]);
+        setGames(SAMPLE_GAMES);
       }
     } else {
-      // Для обычных пользователей - пустой каталог
-      // Админ добавит товары через админ-панель
-      setGames([]);
+      // Временно показываем примеры для теста
+      setGames(SAMPLE_GAMES);
+      localStorage.setItem('village_games', JSON.stringify(SAMPLE_GAMES));
     }
     setIsLoading(false);
   }, []);
