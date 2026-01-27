@@ -1,0 +1,19 @@
+name: Telegram via curl
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message
+        env:
+          BOT_TOKEN: ${{ secrets.TG_TOKEN }}
+          CHAT_ID: ${{ secrets.TG_CHAT }}
+        run: |
+          curl -X POST \
+            -H 'Content-Type: application/json' \
+            -d "{\"chat_id\":\"$CHAT_ID\",\"text\":\"🚀 Деплой от ${{ github.actor }}!\"}" \
+            "https://api.telegram.org/bot$BOT_TOKEN/sendMessage"
