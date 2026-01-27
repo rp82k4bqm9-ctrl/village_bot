@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './contexts/CartContext';
 import { Toaster } from '@/components/ui/sonner';
@@ -7,26 +8,25 @@ import './App.css';
 import { MainNavigation } from './components/MainNavigation';
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './pages/CatalogPage';
-import { SteamPage } from './pages/SteamPage';
 import { FAQPage } from './pages/FAQPage';
 import { SupportPage } from './pages/SupportPage';
 import { AboutPage } from './pages/AboutPage';
 import { AdminPage } from './pages/AdminPage';
 import { CartPage } from './pages/CartPage';
 
-// Проверка админ-доступа по ID из URL или localStorage
+// Проверка админ-доступа
 function checkAdminAccess(): boolean {
   try {
-    // Проверяем URL параметры
     const urlParams = new URLSearchParams(window.location.search);
     const adminParam = urlParams.get('admin');
-    if (adminParam === 'true') return true;
+    if (adminParam === 'true') {
+      localStorage.setItem('village_admin_mode', 'true');
+      return true;
+    }
     
-    // Проверяем localStorage
     const savedAdmin = localStorage.getItem('village_admin_mode');
     if (savedAdmin === 'true') return true;
     
-    // Проверяем Telegram WebApp
     if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
       const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
       return [6153426860, 123456].includes(userId);
@@ -41,24 +41,40 @@ function checkAdminAccess(): boolean {
 function AppFinal() {
   const isAdmin = checkAdminAccess();
   
-  console.log('🎮 Village Store - Магазин без регистрации!');
-  console.log('🔑 Админ режим:', isAdmin ? 'Включен' : 'Выключен');
+  useEffect(() => {
+    // Инициализация Telegram Mini App
+    if (window.Telegram?.WebApp) {
+      const tg = window.Telegram.WebApp;
+      
+      // Растягиваем на всю высоту
+      tg.expand();
+      
+      // Включаем подтверждение закрытия
+      tg.enableClosingConfirmation();
+      
+      // Устанавливаем цвета
+      tg.setHeaderColor('#000000');
+      tg.setBackgroundColor('#000000');
+      
+      // Говорим что готовы
+      tg.ready();
+      
+      console.log('📱 Telegram Mini App инициализирован');
+    }
+  }, []);
 
   return (
     <CartProvider>
-      <div className="min-h-screen elegant-gradient">
+      <div className="min-h-screen elegant-gradient tg-mobile">
         <Router>
-          <div className="flex">
-            {/* Навигация без привязки к пользователю */}
+          <div className="flex flex-col lg:flex-row">
             <MainNavigation isAdmin={isAdmin} />
             
-            {/* Контент */}
-            <div className="flex-1">
-              <main className="pb-8">
+            <div className="flex-1 min-h-screen">
+              <main className="pb-20 lg:pb-8">
                 <Routes>
                   <Route path="/" element={<HomePage isAdmin={isAdmin} />} />
-                  <Route path="/catalog" element={<CatalogPage />} />
-                  <Route path="/steam" element={<SteamPage />} />
+                  <Route path="/catalog" element={<CatalogPage isAdmin={isAdmin} />} />
                   <Route path="/faq" element={<FAQPage />} />
                   <Route path="/support" element={<SupportPage />} />
                   <Route path="/about" element={<AboutPage />} />

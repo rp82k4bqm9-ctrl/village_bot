@@ -6,7 +6,8 @@ import {
   Star,
   Flame,
   Percent,
-  Plus
+  Plus,
+  PackageX
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,46 +27,45 @@ interface Game {
   image?: string;
 }
 
-const SAMPLE_GAMES: Game[] = [
-  { id: '1', title: 'The Last of Us Part II', price: 3499, originalPrice: 4999, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Эпическое приключение в постапокалиптическом мире' },
-  { id: '2', title: 'God of War Ragnarök', price: 4499, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Продолжение легендарной саги' },
-  { id: '3', title: 'Spider-Man 2', price: 4999, platform: ['PS5'], categories: ['popular', 'exclusive'], description: 'Новые приключения Человека-паука' },
-  { id: '4', title: 'Horizon Forbidden West', price: 2999, originalPrice: 3999, platform: ['PS4', 'PS5'], categories: ['sale'], description: 'Откройте западные земли' },
-  { id: '5', title: 'Ghost of Tsushima', price: 2499, originalPrice: 3499, platform: ['PS4', 'PS5'], categories: ['sale', 'popular'], description: 'Станьте самураем на острове Цусима' },
-  { id: '6', title: 'Demon\'s Souls', price: 3999, platform: ['PS5'], categories: ['exclusive'], description: 'Ремейк культовой RPG' },
-  { id: '7', title: 'Ratchet & Clank', price: 2799, originalPrice: 3999, platform: ['PS5'], categories: ['sale'], description: 'Межпространственные приключения' },
-  { id: '8', title: 'Returnal', price: 2299, originalPrice: 4499, platform: ['PS5'], categories: ['sale'], description: 'Рогалик от третьего лица' },
-];
+interface CatalogPageProps {
+  isAdmin?: boolean;
+}
 
-export function CatalogPage() {
+export function CatalogPage({ isAdmin }: CatalogPageProps) {
   const [games, setGames] = useState<Game[]>([]);
   const [filteredGames, setFilteredGames] = useState<Game[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
   const { addItem } = useCart() as { addItem: (item: { id: string; title: string; price: number; type: string; image?: string }) => void };
 
   useEffect(() => {
-    // Загружаем игры из localStorage или используем примеры
+    // Загружаем игры ТОЛЬКО из localStorage (без sample games!)
     const savedGames = localStorage.getItem('village_games');
     if (savedGames) {
-      setGames(JSON.parse(savedGames));
+      try {
+        const parsed = JSON.parse(savedGames);
+        setGames(parsed);
+      } catch {
+        setGames([]);
+      }
     } else {
-      setGames(SAMPLE_GAMES);
-      localStorage.setItem('village_games', JSON.stringify(SAMPLE_GAMES));
+      // Для обычных пользователей - пустой каталог
+      // Админ добавит товары через админ-панель
+      setGames([]);
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     let filtered = games;
 
-    // Фильтр по поиску
     if (searchQuery) {
       filtered = filtered.filter(game => 
         game.title.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Фильтр по категории
     if (activeFilter !== 'all') {
       filtered = filtered.filter(game => {
         if (activeFilter === 'ps5') return game.platform.includes('PS5');
@@ -97,21 +97,29 @@ export function CatalogPage() {
     { id: 'sale', label: 'Распродажа', icon: Percent },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-[#d4af37]">Загрузка...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-black p-4">
+    <div className="min-h-screen bg-black p-4 pb-24">
       <div className="max-w-7xl mx-auto">
         {/* Заголовок */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
-            <Gamepad2 className="w-8 h-8 text-[#d4af37]" />
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+            <Gamepad2 className="w-7 h-7 text-[#d4af37]" />
             Каталог игр
           </h1>
-          <p className="text-slate-400">PS4 и PS5 игры по лучшим ценам</p>
+          <p className="text-slate-400 text-sm">PS4 и PS5 игры по лучшим ценам</p>
         </div>
 
         {/* Поиск */}
-        <div className="mb-6">
-          <div className="relative max-w-md">
+        <div className="mb-4">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
               placeholder="Поиск игр..."
@@ -123,7 +131,7 @@ export function CatalogPage() {
         </div>
 
         {/* Фильтры */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-6">
           {filters.map((filter) => {
             const Icon = filter.icon;
             return (
@@ -137,25 +145,42 @@ export function CatalogPage() {
                   : 'border-[#d4af37]/30 text-white hover:bg-[#d4af37]/10'
                 }
               >
-                <Icon className="w-4 h-4 mr-2" />
+                <Icon className="w-4 h-4 mr-1" />
                 {filter.label}
               </Button>
             );
           })}
         </div>
 
-        {/* Сетка игр */}
-        {filteredGames.length === 0 ? (
+        {/* Пустой каталог */}
+        {filteredGames.length === 0 && (
           <div className="text-center py-12">
-            <Gamepad2 className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg">Игры не найдены</p>
+            <PackageX className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400 text-lg mb-2">Каталог пуст</p>
+            <p className="text-slate-500 text-sm mb-4">
+              {isAdmin 
+                ? 'Добавьте товары через админ-панель' 
+                : 'Товары скоро появятся'}
+            </p>
+            {isAdmin && (
+              <Button 
+                onClick={() => window.location.href = '/admin'}
+                className="bg-gradient-to-r from-[#d4af37] to-[#cd7f32] text-black"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Добавить товар
+              </Button>
+            )}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        )}
+
+        {/* Сетка игр */}
+        {filteredGames.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredGames.map((game) => (
               <Card 
                 key={game.id}
-                className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#d4af37]/20 hover:border-[#d4af37]/40 transition-all duration-300 overflow-hidden group"
+                className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#d4af37]/20 active:scale-95 transition-all duration-200 overflow-hidden"
               >
                 {/* Изображение */}
                 <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
@@ -166,12 +191,14 @@ export function CatalogPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Gamepad2 className="w-16 h-16 text-slate-600" />
+                    <Gamepad2 className="w-12 h-12 text-slate-600" />
                   )}
                   {/* Бейджи */}
                   <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-                    {game.categories.includes('sale') && (
-                      <Badge className="bg-red-500 text-white text-xs">-{Math.round((1 - game.price / (game.originalPrice || game.price)) * 100)}%</Badge>
+                    {game.categories.includes('sale') && game.originalPrice && (
+                      <Badge className="bg-red-500 text-white text-xs">
+                        -{Math.round((1 - game.price / game.originalPrice) * 100)}%
+                      </Badge>
                     )}
                     {game.categories.includes('exclusive') && (
                       <Badge className="bg-purple-500 text-white text-xs">Эксклюзив</Badge>
@@ -190,25 +217,25 @@ export function CatalogPage() {
                       </Badge>
                     ))}
                   </div>
-                  <CardTitle className="text-white text-lg leading-tight">{game.title}</CardTitle>
+                  <CardTitle className="text-white text-base leading-tight">{game.title}</CardTitle>
                   {game.description && (
                     <p className="text-slate-400 text-sm line-clamp-2">{game.description}</p>
                   )}
                 </CardHeader>
 
-                <CardContent>
-                  <div className="flex items-center justify-between mb-4">
+                <CardContent className="pt-0">
+                  <div className="flex items-center justify-between mb-3">
                     <div>
                       {game.originalPrice && (
                         <span className="text-slate-500 line-through text-sm mr-2">
                           {game.originalPrice} ₽
                         </span>
                       )}
-                      <span className="text-[#d4af37] text-xl font-bold">{game.price} ₽</span>
+                      <span className="text-[#d4af37] text-lg font-bold">{game.price} ₽</span>
                     </div>
                   </div>
                   <Button 
-                    className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold"
+                    className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold text-sm"
                     onClick={() => handleAddToCart(game)}
                   >
                     <Plus className="w-4 h-4 mr-2" />
