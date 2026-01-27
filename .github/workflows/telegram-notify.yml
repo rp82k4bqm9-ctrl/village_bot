@@ -3,32 +3,13 @@ name: Telegram Notify
 on:
   push:
     branches: [main, master]
-  deployment_status:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Send to Telegram (on push)
-        if: github.event_name == 'push'
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TG_CHAT }}
-          token: ${{ secrets.TG_TOKEN }}
-          message: |
-            🚀 Пуш в main!
-            
-            Автор: ${{ github.actor }}
-            Сообщение: ${{ github.event.head_commit.message }}
-      
-      - name: Send to Telegram (on deploy)
-        if: github.event_name == 'deployment_status'
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TG_CHAT }}
-          token: ${{ secrets.TG_TOKEN }}
-          message: |
-            ✅ Деплой завершён!
-            
-            Статус: ${{ github.event.deployment_status.state }}
-            Ссылка: ${{ github.event.deployment_status.target_url }}
+      - name: Send to Telegram
+        run: |
+          curl -s -X POST "https://api.telegram.org/bot8534730006:AAGIMjk0a459q_zMzV3kLMxJyvkwHTlsrcI/sendMessage" \
+            -d "chat_id=6153426860" \
+            -d "text=🚀 Пуш от ${{ github.actor }}: ${{ github.event.head_commit.message }}"
