@@ -1,7 +1,9 @@
+// Типы для Telegram WebApp
+
 declare global {
   interface Window {
-    Telegram: {
-      WebApp: {
+    Telegram?: {
+      WebApp?: {
         initData: string;
         initDataUnsafe: {
           user?: {
@@ -9,12 +11,15 @@ declare global {
             first_name: string;
             last_name?: string;
             username?: string;
-            language_code?: string;
           };
         };
         ready: () => void;
         expand: () => void;
-        close: () => void;
+        enableClosingConfirmation: () => void;
+        setHeaderColor: (color: string) => void;
+        setBackgroundColor: (color: string) => void;
+        viewportHeight: number;
+        viewportStableHeight: number;
       };
     };
   }
