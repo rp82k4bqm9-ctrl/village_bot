@@ -1,4 +1,4 @@
-// Типы для Telegram WebApp
+// Types for Telegram WebApp
 
 declare global {
   interface Window {
