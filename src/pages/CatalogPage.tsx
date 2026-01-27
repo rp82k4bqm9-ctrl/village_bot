@@ -16,20 +16,44 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useCart } from '@/contexts/CartContext';
 
+type Platform = 'PS4' | 'PS5' | 'Xbox One' | 'Xbox Series X/S';
+
 interface Game {
   id: string;
   title: string;
   price: number;
   originalPrice?: number;
-  platform: ('PS4' | 'PS5')[];
+  platform: Platform[];
   categories: string[];
   description?: string;
   image?: string;
 }
 
+const SAMPLE_GAMES: Game[] = [
+  { id: '1', title: 'The Last of Us Part II', price: 3499, originalPrice: 4999, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Эпическое приключение в постапокалиптическом мире' },
+  { id: '2', title: 'God of War Ragnarök', price: 4499, platform: ['PS4', 'PS5'], categories: ['popular', 'exclusive'], description: 'Продолжение легендарной саги' },
+  { id: '3', title: 'Spider-Man 2', price: 4999, platform: ['PS5'], categories: ['popular', 'exclusive'], description: 'Новые приключения Человека-паука' },
+  { id: '4', title: 'Horizon Forbidden West', price: 2999, originalPrice: 3999, platform: ['PS4', 'PS5'], categories: ['sale'], description: 'Откройте западные земли' },
+  { id: '5', title: 'Ghost of Tsushima', price: 2499, originalPrice: 3499, platform: ['PS4', 'PS5'], categories: ['sale', 'popular'], description: 'Станьте самураем на острове Цусима' },
+  { id: '6', title: 'Demon\'s Souls', price: 3999, platform: ['PS5'], categories: ['exclusive'], description: 'Ремейк культовой RPG' },
+  { id: '7', title: 'Ratchet & Clank', price: 2799, originalPrice: 3999, platform: ['PS5'], categories: ['sale'], description: 'Межпространственные приключения' },
+  { id: '8', title: 'Returnal', price: 2299, originalPrice: 4499, platform: ['PS5'], categories: ['sale'], description: 'Рогалик от третьего лица' },
+];
+
 interface CatalogPageProps {
   isAdmin?: boolean;
 }
+
+const PLATFORM_FILTERS = [
+  { id: 'all', label: 'Все', icon: Filter },
+  { id: 'ps5', label: 'PS5', icon: Gamepad2, color: 'text-blue-400' },
+  { id: 'ps4', label: 'PS4', icon: Gamepad2, color: 'text-indigo-400' },
+  { id: 'xbox-series', label: 'Xbox Series', icon: Gamepad2, color: 'text-green-500' },
+  { id: 'xbox-one', label: 'Xbox One', icon: Gamepad2, color: 'text-green-400' },
+  { id: 'popular', label: 'Популярные', icon: Star, color: 'text-yellow-400' },
+  { id: 'exclusive', label: 'Эксклюзивы', icon: Flame, color: 'text-purple-400' },
+  { id: 'sale', label: 'Распродажа', icon: Percent, color: 'text-red-400' },
+];
 
 export function CatalogPage({ isAdmin }: CatalogPageProps) {
   const [games, setGames] = useState<Game[]>([]);
@@ -50,7 +74,6 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
         setGames(SAMPLE_GAMES);
       }
     } else {
-      // Временно показываем примеры для теста
       setGames(SAMPLE_GAMES);
       localStorage.setItem('village_games', JSON.stringify(SAMPLE_GAMES));
     }
@@ -70,6 +93,8 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
       filtered = filtered.filter(game => {
         if (activeFilter === 'ps5') return game.platform.includes('PS5');
         if (activeFilter === 'ps4') return game.platform.includes('PS4');
+        if (activeFilter === 'xbox-series') return game.platform.includes('Xbox Series X/S');
+        if (activeFilter === 'xbox-one') return game.platform.includes('Xbox One');
         return game.categories.includes(activeFilter);
       });
     }
@@ -88,14 +113,15 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
     toast.success(`${game.title} добавлена в корзину!`);
   };
 
-  const filters = [
-    { id: 'all', label: 'Все', icon: Filter },
-    { id: 'ps5', label: 'PS5', icon: Gamepad2 },
-    { id: 'ps4', label: 'PS4', icon: Gamepad2 },
-    { id: 'popular', label: 'Популярные', icon: Star },
-    { id: 'exclusive', label: 'Эксклюзивы', icon: Flame },
-    { id: 'sale', label: 'Распродажа', icon: Percent },
-  ];
+  const getPlatformColor = (platform: string) => {
+    switch (platform) {
+      case 'PS5': return 'text-blue-400 border-blue-400/50';
+      case 'PS4': return 'text-indigo-400 border-indigo-400/50';
+      case 'Xbox Series X/S': return 'text-green-500 border-green-500/50';
+      case 'Xbox One': return 'text-green-400 border-green-400/50';
+      default: return 'text-slate-400 border-slate-600';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -114,7 +140,7 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
             <Gamepad2 className="w-7 h-7 text-[#d4af37]" />
             Каталог игр
           </h1>
-          <p className="text-slate-400 text-sm">PS4 и PS5 игры по лучшим ценам</p>
+          <p className="text-slate-400 text-sm">PS4, PS5, Xbox игры по лучшим ценам</p>
         </div>
 
         {/* Поиск */}
@@ -132,7 +158,7 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
 
         {/* Фильтры */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {filters.map((filter) => {
+          {PLATFORM_FILTERS.map((filter) => {
             const Icon = filter.icon;
             return (
               <Button
@@ -145,7 +171,7 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                   : 'border-[#d4af37]/30 text-white hover:bg-[#d4af37]/10'
                 }
               >
-                <Icon className="w-4 h-4 mr-1" />
+                <Icon className={`w-4 h-4 mr-1 ${filter.color || ''}`} />
                 {filter.label}
               </Button>
             );
@@ -210,9 +236,9 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                 </div>
 
                 <CardHeader className="pb-2">
-                  <div className="flex gap-1 mb-2">
+                  <div className="flex flex-wrap gap-1 mb-2">
                     {game.platform.map((p) => (
-                      <Badge key={p} variant="outline" className="text-xs border-slate-600 text-slate-400">
+                      <Badge key={p} variant="outline" className={`text-xs ${getPlatformColor(p)}`}>
                         {p}
                       </Badge>
                     ))}
