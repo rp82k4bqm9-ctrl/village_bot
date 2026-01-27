@@ -1,0 +1,20 @@
+name: Telegram Simple
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send message to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TG_CHAT }}
+          token: ${{ secrets.TG_TOKEN }}
+          message: |
+            🚀 Деплой!
+            
+            Пользователь: ${{ github.actor }}
+            Сообщение: ${{ github.event.head_commit.message }}
