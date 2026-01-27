@@ -103,11 +103,13 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
   }, [games, searchQuery, activeFilter]);
 
   const handleAddToCart = (game: Game) => {
+    // Определяем тип игры по платформе для иконки
+    const isXbox = game.platform.some(p => p.includes('Xbox'));
     addItem({
       id: game.id,
       title: game.title,
       price: game.price,
-      type: 'game',
+      type: isXbox ? 'xbox-game' : 'ps-game',
       image: game.image
     });
     toast.success(`${game.title} добавлена в корзину!`);

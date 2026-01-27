@@ -27,8 +27,8 @@ import { useCart } from '@/contexts/CartContext';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   game: Gamepad2,
-  steam: Wallet,
-  'steam-game': Gamepad2,
+  'ps-game': Gamepad2,
+  'xbox-game': Gamepad2,
   default: Package
 };
 
