@@ -1,0 +1,24 @@
+name: Telegram Notify
+
+on:
+  push:
+    branches: [main, master]
+  deployment_status:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send to Telegram
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            🚀 Деплой проекта!
+            
+            Статус: ${{ github.event.deployment_status.state }}
+            Ветка: ${{ github.ref }}
+            Автор: ${{ github.actor }}
+            
+            ${{ github.event.deployment_status.target_url }}
