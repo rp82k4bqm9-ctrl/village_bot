@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* БЛОКИРУЕМ АВТОЗАПОЛНЕНИЕ БРАУЗЕРА */
+
+/* Скрываем всплывающие окна автозаполнения */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit !important;
+  background-color: transparent !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Скрываем иконки автозаполнения */
+::-webkit-credentials-auto-fill-button {
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+}
+
+/* Скрываем предложения сохранить пароль */
+input::-webkit-contacts-auto-fill-button {
+  visibility: hidden !important;
+  display: none !important;
+}
+
+/* Блокируем WebAuthn и Credential Management */
+body {
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Скрываем стандартные сообщения браузера */
+.browser-autofill-hint {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Специально для Safari/iOS */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    -webkit-touch-callout: none !important;
+    -webkit-user-modify: read-only !important;
+  }
+}
+
+/* Для Chrome/Edge */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input, textarea, select {
+    -webkit-user-modify: read-only !important;
+  }
+}
+
+/* Скрываем Google Sign-In и другие OAuth кнопки */
+.g-signin2, .g-sign-in, .firebaseui-auth-container,
+[data-testid="google-sign-in-button"],
+[data-provider-id="google.com"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Скрываем системные диалоги */
+::-webkit-autofill-strong-password,
+::-webkit-autofill-strong-password-view-button,
+::-webkit-autofill-credential-chevron {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 43 74% 52%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 30 61% 45%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 43 74% 52%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 43 30% 30%;
+    --input: 0 0% 12%;
+    --ring: 43 74% 52%;
+    --radius: 0.5rem;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 43 74% 52%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 43 30% 20%;
+    --sidebar-ring: 43 74% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Smooth transitions */
+  .tg-transition {
+    transition: all 0.3s ease;
+  }
+
+  /* Safe area for mobile */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Hide scrollbar but allow scrolling */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glass morphism with gold accent */
+.glass {
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+/* Gold text */
+.text-gold {
+  color: #d4af37;
+}
+
+.text-bronze {
+  color: #cd7f32;
+}
+
+/* Gold border */
+.border-gold {
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+/* Press effect */
+.press-effect {
+  transition: transform 0.15s ease;
+}
+
+.press-effect:active {
+  transform: scale(0.97);
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Village Store - Gaming Shop</title>
+    <!-- Блокируем автозаполнение паролей -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Отключаем автозаполнение для всей страницы -->
+    <meta name="autocomplete" content="off">
+    <meta name="google-signin-client_id" content="">
+    <meta name="google-signin-scope" content="">
+    <script type="module" crossorigin src="./assets/index-CowEworb.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-D87_rgGo.css">
+  </head>
+  <body autocomplete="off" onload="document.body.setAttribute('autocomplete', 'off');">
+    <div id="root"></div>
+    <!-- Блокируем автозаполнение паролей -->
+    <script>
+      // Отключаем автозаполнение паролей
+      if ('PasswordCredential' in window) {
+        window.PasswordCredential = undefined;
+      }
+      
+      // Убираем предложения сохранить пароль
+      document.addEventListener('DOMContentLoaded', function() {
+        // Удаляем атрибуты которые могут вызвать автозаполнение
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.nodeType === 1) { // Element node
+                // Удаляем атрибуты автозаполнения
+                node.removeAttribute('autocomplete');
+                node.setAttribute('autocomplete', 'off');
+                
+                // Удаляем типы которые могут вызвать автозаполнение
+                if (node.tagName === 'INPUT') {
+                  if (node.type === 'password' || node.type === 'email' || node.type === 'username') {
+                    node.type = 'text';
+                  }
+                }
+              }
+            });
+          });
+        });
+        
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      });
+      
+      // Блокируем WebAuthn API
+      if ('PublicKeyCredential' in window) {
+        Object.defineProperty(window, 'PublicKeyCredential', {
+          value: undefined,
+          writable: false,
+          configurable: false
+        });
+      }
+      
+      // Блокируем Credential Management API
+      if ('credentials' in navigator) {
+        Object.defineProperty(navigator, 'credentials', {
+          value: undefined,
+          writable: false,
+          configurable: false
+        });
+      }
+    </script>
+  </body>
+</html>
