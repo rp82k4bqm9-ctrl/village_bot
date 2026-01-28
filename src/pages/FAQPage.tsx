@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FAQ_CATEGORIES, DEFAULT_FAQ_CONTENT, type FaqContentByCategory } from '@/content/faq';
-import { getContent, type ContentBlock } from '@/services/api';
+import { getContent } from '@/services/api';
 
 export function FAQPage() {
   const [faqContent, setFaqContent] = useState<FaqContentByCategory>(DEFAULT_FAQ_CONTENT);

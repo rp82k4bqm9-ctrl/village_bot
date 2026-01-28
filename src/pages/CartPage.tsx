@@ -7,7 +7,6 @@ import {
   CreditCard,
   Gamepad2,
   Package,
-  Wallet,
   User,
   Phone,
   Mail,
