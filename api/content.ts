@@ -95,9 +95,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Content API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    const errorMessage = error?.message || 'Internal server error';
+    const statusCode = error?.code === 'ECONNREFUSED' || error?.code === 'ENOTFOUND' ? 503 : 500;
+    return res.status(statusCode).json({ 
+      error: 'Database connection failed',
+      details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+    });
   }
 }
 
