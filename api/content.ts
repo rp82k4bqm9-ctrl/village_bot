@@ -1,5 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { RowDataPacket, ResultSetHeader } from 'mysql2';
 import pool from './db';
+
+interface ContentRow extends RowDataPacket {
+  key: string;
+  title: string | null;
+  content: string;
+  updated_at: string;
+}
 
 // Управление текстовыми блоками (FAQ, О нас и т.д.)
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -20,16 +28,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'GET') {
-      const result = await pool.query(
-        'SELECT key, title, content, updated_at FROM content_blocks WHERE key = $1',
+      const [rows] = await pool.query<ContentRow[]>(
+        'SELECT `key`, title, content, updated_at FROM content_blocks WHERE `key` = ?',
         [key]
       );
 
-      if (result.rows.length === 0) {
+      if (!rows.length) {
         return res.status(404).json({ error: 'Контент не найден' });
       }
 
-      return res.status(200).json(result.rows[0]);
+      const row = rows[0];
+
+      return res.status(200).json({
+        key: row.key,
+        title: row.title,
+        content: JSON.parse(row.content as unknown as string),
+        updated_at: row.updated_at,
+      });
     }
 
     if (req.method === 'PUT') {
@@ -44,18 +59,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Поле content обязательно' });
       }
 
-      const result = await pool.query(
-        `INSERT INTO content_blocks (key, title, content)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (key) DO UPDATE
-         SET title = COALESCE($2, content_blocks.title),
-             content = $3,
-             updated_at = CURRENT_TIMESTAMP
-         RETURNING key, title, content, updated_at`,
-        [key, title || null, JSON.stringify(content)]
+      const jsonContent = JSON.stringify(content);
+
+      const [result] = await pool.query<ResultSetHeader>(
+        `INSERT INTO content_blocks (\`key\`, title, content)
+         VALUES (?, ?, ?)
+         ON DUPLICATE KEY UPDATE
+           title = COALESCE(VALUES(title), title),
+           content = VALUES(content),
+           updated_at = CURRENT_TIMESTAMP`,
+        [key, title || null, jsonContent]
       );
 
-      return res.status(200).json(result.rows[0]);
+      if ((result as ResultSetHeader).affectedRows === 0) {
+        return res.status(500).json({ error: 'Не удалось сохранить контент' });
+      }
+
+      const [rows] = await pool.query<ContentRow[]>(
+        'SELECT `key`, title, content, updated_at FROM content_blocks WHERE `key` = ?',
+        [key]
+      );
+
+      if (!rows.length) {
+        return res.status(500).json({ error: 'Не удалось получить сохранённый контент' });
+      }
+
+      const row = rows[0];
+
+      return res.status(200).json({
+        key: row.key,
+        title: row.title,
+        content: JSON.parse(row.content as unknown as string),
+        updated_at: row.updated_at,
+      });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

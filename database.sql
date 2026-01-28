@@ -1,34 +1,34 @@
--- SQL для создания таблицы игр в PostgreSQL на Beget (или другом хостинге)
+-- SQL для создания таблицы игр в MySQL на Beget (или другом хостинге)
 
 CREATE TABLE IF NOT EXISTS games (
-  id SERIAL PRIMARY KEY,
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
-  price INTEGER NOT NULL,
-  original_price INTEGER,
-  platform JSONB DEFAULT '[]'::jsonb,
-  categories JSONB DEFAULT '[]'::jsonb,
-  description TEXT DEFAULT '',
-  image VARCHAR(500) DEFAULT '',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  price INT NOT NULL,
+  original_price INT NULL,
+  platform JSON NOT NULL DEFAULT (JSON_ARRAY()),
+  categories JSON NOT NULL DEFAULT (JSON_ARRAY()),
+  description TEXT NOT NULL DEFAULT '',
+  image VARCHAR(500) NOT NULL DEFAULT '',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Индексы для быстрого поиска
-CREATE INDEX IF NOT EXISTS idx_games_platform ON games USING GIN (platform);
-CREATE INDEX IF NOT EXISTS idx_games_categories ON games USING GIN (categories);
+CREATE INDEX idx_games_platform ON games ((CAST(JSON_EXTRACT(platform, '$') AS CHAR(255))));
+CREATE INDEX idx_games_categories ON games ((CAST(JSON_EXTRACT(categories, '$') AS CHAR(255))));
 
 -- Пример данных (можно удалить после теста)
 INSERT INTO games (title, price, original_price, platform, categories, description) VALUES
-('The Last of Us Part II', 3499, 4999, '["PS4", "PS5"]', '["popular", "exclusive"]', 'Эпическое приключение в постапокалиптическом мире'),
-('God of War Ragnarök', 4499, null, '["PS4", "PS5"]', '["popular", "exclusive"]', 'Продолжение легендарной саги'),
-('Spider-Man 2', 4999, null, '["PS5"]', '["popular", "exclusive"]', 'Новые приключения Человека-паука'),
-('Horizon Forbidden West', 2999, 3999, '["PS4", "PS5"]', '["sale"]', 'Откройте западные земли');
+('The Last of Us Part II', 3499, 4999, JSON_ARRAY('PS4', 'PS5'), JSON_ARRAY('popular', 'exclusive'), 'Эпическое приключение в постапокалиптическом мире'),
+('God of War Ragnarök', 4499, NULL, JSON_ARRAY('PS4', 'PS5'), JSON_ARRAY('popular', 'exclusive'), 'Продолжение легендарной саги'),
+('Spider-Man 2', 4999, NULL, JSON_ARRAY('PS5'), JSON_ARRAY('popular', 'exclusive'), 'Новые приключения Человека-паука'),
+('Horizon Forbidden West', 2999, 3999, JSON_ARRAY('PS4', 'PS5'), JSON_ARRAY('sale'), 'Откройте западные земли');
 
 -- Таблица для текстовых блоков (FAQ, О нас, поддержка и др.)
 CREATE TABLE IF NOT EXISTS content_blocks (
-  key VARCHAR(100) PRIMARY KEY,
-  title VARCHAR(255),
-  content JSONB NOT NULL,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  `key` VARCHAR(100) NOT NULL PRIMARY KEY,
+  title VARCHAR(255) NULL,
+  content JSON NOT NULL,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
