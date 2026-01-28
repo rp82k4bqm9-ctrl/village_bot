@@ -20,7 +20,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { getGames, addGame, updateGame, deleteGame, type Game } from '@/services/api';
+import { getGames, addGame, updateGame, deleteGame, saveContent, type Game } from '@/services/api';
+import { FAQ_CATEGORIES, DEFAULT_FAQ_CONTENT, type FaqContentByCategory } from '@/content/faq';
 
 type Platform = 'PS4' | 'PS5' | 'Xbox One' | 'Xbox Series X/S';
 
@@ -47,6 +48,11 @@ export function AdminPage() {
     image: ''
   });
 
+  // Управление текстами (FAQ и др.)
+  const [isFaqDialogOpen, setIsFaqDialogOpen] = useState(false);
+  const [faqContent, setFaqContent] = useState<FaqContentByCategory>(DEFAULT_FAQ_CONTENT);
+  const [isFaqSaving, setIsFaqSaving] = useState(false);
+
   // Загрузка игр с сервера
   const loadGames = async () => {
     try {
@@ -66,6 +72,42 @@ export function AdminPage() {
   useEffect(() => {
     loadGames();
   }, []);
+
+  const openFaqDialog = () => {
+    setIsFaqDialogOpen(true);
+  };
+
+  const handleFaqQuestionChange = (
+    categoryId: string,
+    index: number,
+    field: 'q' | 'a',
+    value: string
+  ) => {
+    setFaqContent((prev) => {
+      const existing = prev[categoryId] || DEFAULT_FAQ_CONTENT[categoryId] || [];
+      const updated = existing.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      );
+
+      return {
+        ...prev,
+        [categoryId]: updated,
+      };
+    });
+  };
+
+  const handleSaveFaq = async () => {
+    try {
+      setIsFaqSaving(true);
+      await saveContent<FaqContentByCategory>('faq', faqContent, 'FAQ');
+      toast.success('FAQ обновлён');
+      setIsFaqDialogOpen(false);
+    } catch {
+      toast.error('Ошибка сохранения FAQ');
+    } finally {
+      setIsFaqSaving(false);
+    }
+  };
 
   const handleAddGame = async () => {
     if (!formData.title || !formData.price) {
@@ -196,7 +238,7 @@ export function AdminPage() {
             <h2 className="text-xl font-bold text-white mb-2">Ошибка подключения</h2>
             <p className="text-slate-400 mb-4">{error}</p>
             <p className="text-slate-500 text-sm mb-4">
-              Проверьте файл TIMEWEB_SETUP.md для настройки базы данных.
+              Проверьте файл TIMEWEB_SETUP.md для настройки базы данных на Beget.
             </p>
             <Button 
               onClick={loadGames}
@@ -220,7 +262,35 @@ export function AdminPage() {
             <Settings className="w-7 h-7 lg:w-8 lg:h-8 text-rose-400" />
             Админ-панель
           </h1>
-          <p className="text-slate-400 text-sm">Управление каталогом игр (Timeweb Cloud PostgreSQL)</p>
+          <p className="text-slate-400 text-sm">Управление каталогом игр (PostgreSQL на Beget)</p>
+        </div>
+
+        {/* Управление текстами */}
+        <div className="mb-6">
+          <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700">
+            <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="text-white font-semibold mb-1 flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-[#d4af37]" />
+                  Тексты приложения
+                </h2>
+                <p className="text-slate-400 text-sm">
+                  Редактирование FAQ и других текстов, которые видят пользователи.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  className="border-[#d4af37]/40 text-[#d4af37] hover:bg-[#d4af37]/10 text-sm"
+                  size="sm"
+                  onClick={openFaqDialog}
+                >
+                  FAQ
+                </Button>
+                {/* Здесь можно добавить другие кнопки для О нас, Поддержка и т.д. */}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Статистика */}
@@ -401,6 +471,97 @@ export function AdminPage() {
               toggleCategory={toggleCategory}
               isEdit
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Диалог редактирования FAQ */}
+        <Dialog open={isFaqDialogOpen} onOpenChange={setIsFaqDialogOpen}>
+          <DialogContent className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700 text-white max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-[#d4af37]" />
+                Редактирование FAQ
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 mt-2">
+              {FAQ_CATEGORIES.map((category) => {
+                const questions =
+                  faqContent[category.id] || DEFAULT_FAQ_CONTENT[category.id] || [];
+
+                return (
+                  <Card
+                    key={category.id}
+                    className="bg-gradient-to-br from-[#111] to-[#050505] border border-slate-800"
+                  >
+                    <CardContent className="p-4 space-y-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <category.icon className={`w-4 h-4 ${category.color}`} />
+                        <h3 className="text-sm font-semibold text-white">
+                          {category.category}
+                        </h3>
+                      </div>
+                      {questions.map((item, index) => (
+                        <div
+                          key={`${category.id}-${index}`}
+                          className="space-y-2 border border-slate-800 rounded-lg p-3"
+                        >
+                          <div>
+                            <Label className="text-slate-300 text-xs">
+                              Вопрос #{index + 1}
+                            </Label>
+                            <Input
+                              value={item.q}
+                              onChange={(e) =>
+                                handleFaqQuestionChange(
+                                  category.id,
+                                  index,
+                                  'q',
+                                  e.target.value
+                                )
+                              }
+                              className="bg-[#0d0d0d] border-slate-700 text-sm text-white mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-slate-300 text-xs">
+                              Ответ #{index + 1}
+                            </Label>
+                            <Textarea
+                              value={item.a}
+                              onChange={(e) =>
+                                handleFaqQuestionChange(
+                                  category.id,
+                                  index,
+                                  'a',
+                                  e.target.value
+                                )
+                              }
+                              className="bg-[#0d0d0d] border-slate-700 text-sm text-white mt-1 min-h-[80px]"
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleSaveFaq}
+                disabled={isFaqSaving}
+                className="flex-1 bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black"
+              >
+                {isFaqSaving ? 'Сохранение...' : 'Сохранить FAQ'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsFaqDialogOpen(false)}
+                className="border-slate-600 text-slate-300 hover:bg-slate-800"
+              >
+                Отмена
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

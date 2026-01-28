@@ -1,12 +1,8 @@
 import { 
   HelpCircle, 
-  Truck, 
-  CreditCard, 
-  RefreshCw, 
-  Shield,
-  Package,
   MessageCircle
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -14,131 +10,33 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-const FAQ_ITEMS = [
-  {
-    id: 'delivery',
-    icon: Truck,
-    category: 'Доставка',
-    color: 'text-blue-400',
-    questions: [
-      {
-        q: 'Как происходит доставка цифровых игр?',
-        a: 'После оплаты вы получаете код активации на email или в Telegram. Для аккаунтов - данные для входа отправляются в течение 15 минут после подтверждения оплаты.'
-      },
-      {
-        q: 'Сколько времени занимает доставка?',
-        a: 'Цифровые коды отправляются мгновенно после оплаты. Активация аккаунтов занимает до 30 минут в рабочее время (10:00 - 22:00 МСК).'
-      },
-      {
-        q: 'Можно ли получить игру сразу после оплаты?',
-        a: 'Да! Все цифровые коды и ключи отправляются автоматически сразу после подтверждения платежа.'
-      }
-    ]
-  },
-  {
-    id: 'payment',
-    icon: CreditCard,
-    category: 'Оплата',
-    color: 'text-green-400',
-    questions: [
-      {
-        q: 'Какие способы оплаты доступны?',
-        a: 'Мы принимаем банковские карты (Visa, Mastercard, МИР), СБП, электронные кошельки (ЮMoney, WebMoney), криптовалюту и оплату через Telegram.'
-      },
-      {
-        q: 'Безопасна ли оплата на сайте?',
-        a: 'Да! Все платежи проходят через защищённые сертифицированные шлюзы. Мы не храним данные ваших карт.'
-      },
-      {
-        q: 'Можно ли оплатить в рассрочку?',
-        a: 'Да, для покупок от 3000 ₽ доступна рассрочка через Тинькофф или Сбербанк на 3-6 месяцев.'
-      }
-    ]
-  },
-  {
-    id: 'return',
-    icon: RefreshCw,
-    category: 'Возврат и обмен',
-    color: 'text-orange-400',
-    questions: [
-      {
-        q: 'Можно ли вернуть цифровой товар?',
-        a: 'Цифровые коды и ключи возврату не подлежат после отправки. Исключение - технические неисправности с нашей стороны.'
-      },
-      {
-        q: 'Что делать, если код не работает?',
-        a: 'Сразу обратитесь в поддержку с скриншотом ошибки. Мы проверим код и заменим его при необходимости в течение 24 часов.'
-      },
-      {
-        q: 'Можно ли обменять игру на другую?',
-        a: 'Обмен возможен только до момента отправки кода. После активации обмен невозможен.'
-      }
-    ]
-  },
-  {
-    id: 'guarantee',
-    icon: Shield,
-    category: 'Гарантии',
-    color: 'text-purple-400',
-    questions: [
-      {
-        q: 'Какие гарантии вы предоставляете?',
-        a: 'Мы гарантируем работоспособность всех кодов и ключей. В случае проблем - бесплатная замена или возврат средств.'
-      },
-      {
-        q: 'Что такое гарантия на аккаунты?',
-        a: 'На все аккаунты предоставляется гарантия 30 дней. При блокировке по нашей вине - замена или возврат.'
-      },
-      {
-        q: 'Почему ваши цены ниже чем в официальном магазине?',
-        a: 'Мы закупаем ключи оптом у региональных дистрибьюторов и работаем с минимальной наценкой.'
-      }
-    ]
-  },
-  {
-    id: 'products',
-    icon: Package,
-    category: 'Товары',
-    color: 'text-pink-400',
-    questions: [
-      {
-        q: 'В чем разница между аккаунтом и ключом?',
-        a: 'Ключ активируется на вашем аккаунте и игра остаётся у вас навсегда. Аккаунт - это отдельная учетная запись с игрой, требует переключения между аккаунтами.'
-      },
-      {
-        q: 'Работают ли игры в России?',
-        a: 'Да! Все наши ключи и аккаунты работают на территории РФ без VPN.'
-      },
-      {
-        q: 'Есть ли русский язык в играх?',
-        a: 'В карточке каждой игры указано наличие русского языка (интерфейс/озвучка/субтитры).'
-      }
-    ]
-  },
-  {
-    id: 'support',
-    icon: MessageCircle,
-    category: 'Поддержка',
-    color: 'text-cyan-400',
-    questions: [
-      {
-        q: 'Как связаться с поддержкой?',
-        a: 'Напишите нам в Telegram @village_support или на email support@village.store. Мы отвечаем ежедневно с 10:00 до 22:00.'
-      },
-      {
-        q: 'Сколько времени занимает ответ?',
-        a: 'В среднем ответ приходит в течение 15-30 минут в рабочее время. В пиковые часы может занять до 2 часов.'
-      },
-      {
-        q: 'Есть ли поддержка по телефону?',
-        a: 'Основная поддержка ведётся через Telegram для оперативности. По сложным вопросам можем созвониться.'
-      }
-    ]
-  }
-];
+import { FAQ_CATEGORIES, DEFAULT_FAQ_CONTENT, type FaqContentByCategory } from '@/content/faq';
+import { getContent, type ContentBlock } from '@/services/api';
 
 export function FAQPage() {
+  const [faqContent, setFaqContent] = useState<FaqContentByCategory>(DEFAULT_FAQ_CONTENT);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadContent = async () => {
+      try {
+        const data = await getContent<FaqContentByCategory>('faq');
+        if (data && data.content && isMounted) {
+          setFaqContent(data.content);
+        }
+      } catch (error) {
+        console.error('Failed to load FAQ content, using defaults', error);
+      }
+    };
+
+    loadContent();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-black p-4">
       <div className="max-w-4xl mx-auto">
@@ -153,8 +51,10 @@ export function FAQPage() {
 
         {/* FAQ по категориям */}
         <div className="space-y-6">
-          {FAQ_ITEMS.map((category) => {
+          {FAQ_CATEGORIES.map((category) => {
             const Icon = category.icon;
+            const questions =
+              faqContent[category.id] || DEFAULT_FAQ_CONTENT[category.id] || [];
             return (
               <Card 
                 key={category.id}
@@ -168,7 +68,7 @@ export function FAQPage() {
                 </CardHeader>
                 <CardContent>
                   <Accordion type="single" collapsible className="w-full">
-                    {category.questions.map((item, index) => (
+                    {questions.map((item, index) => (
                       <AccordionItem 
                         key={index} 
                         value={`${category.id}-${index}`}

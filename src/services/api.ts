@@ -14,6 +14,13 @@ export interface Game {
   created_at?: string;
 }
 
+export interface ContentBlock<T = any> {
+  key: string;
+  title?: string | null;
+  content: T;
+  updated_at?: string;
+}
+
 // Получить все игры
 export async function getGames(): Promise<Game[]> {
   const response = await fetch(`${API_URL}/api/games`);
@@ -58,6 +65,37 @@ export async function deleteGame(id: string): Promise<void> {
     }
   });
   if (!response.ok) throw new Error('Failed to delete game');
+}
+
+// Получить текстовый блок (FAQ, о нас и т.п.)
+export async function getContent<T = any>(key: string): Promise<ContentBlock<T> | null> {
+  const response = await fetch(`${API_URL}/api/content?key=${encodeURIComponent(key)}`);
+
+  if (response.status === 404) {
+    return null;
+  }
+
+  if (!response.ok) throw new Error('Failed to fetch content');
+  return response.json();
+}
+
+// Сохранить текстовый блок (только админ)
+export async function saveContent<T = any>(
+  key: string,
+  content: T,
+  title?: string
+): Promise<ContentBlock<T>> {
+  const response = await fetch(`${API_URL}/api/content`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Admin-Token': ADMIN_TOKEN,
+    },
+    body: JSON.stringify({ key, content, title }),
+  });
+
+  if (!response.ok) throw new Error('Failed to save content');
+  return response.json();
 }
 
 // Проверка админа (проверяем localStorage + токен)

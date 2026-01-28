@@ -1,11 +1,8 @@
 import { Pool } from 'pg';
 
-// Настройка подключения к PostgreSQL (Timeweb Cloud)
+// Настройка подключения к PostgreSQL (Beget или другой хостинг)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false // Требуется для Timeweb Cloud
-  }
 });
 
 export default pool;

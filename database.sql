@@ -1,4 +1,4 @@
--- SQL для создания таблицы игр в Timeweb Cloud PostgreSQL
+-- SQL для создания таблицы игр в PostgreSQL на Beget (или другом хостинге)
 
 CREATE TABLE IF NOT EXISTS games (
   id SERIAL PRIMARY KEY,
@@ -23,3 +23,12 @@ INSERT INTO games (title, price, original_price, platform, categories, descripti
 ('God of War Ragnarök', 4499, null, '["PS4", "PS5"]', '["popular", "exclusive"]', 'Продолжение легендарной саги'),
 ('Spider-Man 2', 4999, null, '["PS5"]', '["popular", "exclusive"]', 'Новые приключения Человека-паука'),
 ('Horizon Forbidden West', 2999, 3999, '["PS4", "PS5"]', '["sale"]', 'Откройте западные земли');
+
+-- Таблица для текстовых блоков (FAQ, О нас, поддержка и др.)
+CREATE TABLE IF NOT EXISTS content_blocks (
+  key VARCHAR(100) PRIMARY KEY,
+  title VARCHAR(255),
+  content JSONB NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
