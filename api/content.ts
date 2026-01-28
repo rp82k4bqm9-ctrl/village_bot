@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import type { RowDataPacket, ResultSetHeader } from 'mysql2';
-import pool from './db';
+// ОБРАТИТЕ ВНИМАНИЕ: используем .js расширение!
+import pool from './db.js';
 
 interface ContentRow extends RowDataPacket {
   key: string;
@@ -9,95 +10,116 @@ interface ContentRow extends RowDataPacket {
   updated_at: string;
 }
 
-// Управление текстовыми блоками (FAQ, О нас и т.д.)
+// Получить или обновить текстовые блоки (FAQ, О нас, Поддержка)
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Token');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  // Проверка админа для модификации
+  const adminToken = req.headers['x-admin-token'];
+  const isAdmin = adminToken === process.env.ADMIN_TOKEN;
+
   try {
-    const key = (req.method === 'GET' ? req.query.key : req.body?.key) as string | undefined;
-
-    if (!key || typeof key !== 'string') {
-      return res.status(400).json({ error: 'Параметр key обязателен' });
-    }
-
     if (req.method === 'GET') {
-      const [rows] = await pool.query<ContentRow[]>(
-        'SELECT `key`, title, content, updated_at FROM content_blocks WHERE `key` = ?',
-        [key]
-      );
+      const { key } = req.query;
+      
+      if (key && typeof key === 'string') {
+        // Получить конкретный блок
+        const [rows] = await pool.query<ContentRow[]>(
+          'SELECT * FROM content_blocks WHERE `key` = ?',
+          [key]
+        );
 
-      if (!rows.length) {
-        return res.status(404).json({ error: 'Контент не найден' });
+        if (!rows.length) {
+          return res.status(404).json({ error: 'Контент не найден' });
+        }
+
+        return res.status(200).json({
+          ...rows[0],
+          content: JSON.parse(rows[0].content)
+        });
+      } else {
+        // Получить все блоки
+        const [rows] = await pool.query<ContentRow[]>(
+          'SELECT * FROM content_blocks ORDER BY `key`'
+        );
+
+        const content = rows.reduce((acc, row) => {
+          acc[row.key] = {
+            title: row.title,
+            content: JSON.parse(row.content),
+            updated_at: row.updated_at
+          };
+          return acc;
+        }, {} as Record<string, any>);
+
+        return res.status(200).json(content);
       }
-
-      const row = rows[0];
-
-      return res.status(200).json({
-        key: row.key,
-        title: row.title,
-        content: JSON.parse(row.content as unknown as string),
-        updated_at: row.updated_at,
-      });
     }
 
-    if (req.method === 'PUT') {
-      const adminToken = req.headers['x-admin-token'];
-      if (adminToken !== process.env.ADMIN_TOKEN) {
+    if (req.method === 'PUT' || req.method === 'POST') {
+      if (!isAdmin) {
         return res.status(403).json({ error: 'Доступ запрещен' });
       }
 
-      const { title, content } = req.body || {};
+      const { key, title, content } = req.body;
 
-      if (!content) {
-        return res.status(400).json({ error: 'Поле content обязательно' });
+      if (!key || !content) {
+        return res.status(400).json({ error: 'Необходимы поля key и content' });
       }
 
-      const jsonContent = JSON.stringify(content);
+      const contentJson = JSON.stringify(content);
 
+      // INSERT ... ON DUPLICATE KEY UPDATE для MySQL
       const [result] = await pool.query<ResultSetHeader>(
-        `INSERT INTO content_blocks (\`key\`, title, content)
+        `INSERT INTO content_blocks (\`key\`, title, content) 
          VALUES (?, ?, ?)
-         ON DUPLICATE KEY UPDATE
-           title = COALESCE(VALUES(title), title),
-           content = VALUES(content),
-           updated_at = CURRENT_TIMESTAMP`,
-        [key, title || null, jsonContent]
+         ON DUPLICATE KEY UPDATE 
+         title = VALUES(title), 
+         content = VALUES(content)`,
+        [key, title || null, contentJson]
       );
 
-      if ((result as ResultSetHeader).affectedRows === 0) {
-        return res.status(500).json({ error: 'Не удалось сохранить контент' });
+      return res.status(200).json({ 
+        message: 'Контент сохранен',
+        key,
+        affectedRows: result.affectedRows
+      });
+    }
+
+    if (req.method === 'DELETE') {
+      if (!isAdmin) {
+        return res.status(403).json({ error: 'Доступ запрещен' });
       }
 
-      const [rows] = await pool.query<ContentRow[]>(
-        'SELECT `key`, title, content, updated_at FROM content_blocks WHERE `key` = ?',
+      const { key } = req.query;
+      
+      if (!key || typeof key !== 'string') {
+        return res.status(400).json({ error: 'Необходим параметр key' });
+      }
+
+      const [result] = await pool.query<ResultSetHeader>(
+        'DELETE FROM content_blocks WHERE `key` = ?',
         [key]
       );
 
-      if (!rows.length) {
-        return res.status(500).json({ error: 'Не удалось получить сохранённый контент' });
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Контент не найден' });
       }
 
-      const row = rows[0];
-
-      return res.status(200).json({
-        key: row.key,
-        title: row.title,
-        content: JSON.parse(row.content as unknown as string),
-        updated_at: row.updated_at,
-      });
+      return res.status(200).json({ message: 'Контент удален' });
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: any) {
-    console.error('Content API error:', error);
-    const errorMessage = error?.message || 'Internal server error';
+    console.error('Database error:', error);
+    const errorMessage = error?.message || 'Database error';
     const statusCode = error?.code === 'ECONNREFUSED' || error?.code === 'ENOTFOUND' ? 503 : 500;
     return res.status(statusCode).json({ 
       error: 'Database connection failed',
@@ -105,4 +127,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 }
-

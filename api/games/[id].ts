@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import type { RowDataPacket, ResultSetHeader } from 'mysql2';
-import pool from '../db';
+// Используем .js расширение для ESM импортов
+import pool from '../db.js';
 
 interface GameRow extends RowDataPacket {
   id: number;
@@ -29,80 +30,79 @@ function normalizeGameRow(row: GameRow) {
   };
 }
 
-// Обновить или удалить игру
+// Получить список игр или создать новую
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  const { id } = req.query;
-  
-  // Проверка админа
-  const adminToken = req.headers['x-admin-token'];
-  if (adminToken !== process.env.ADMIN_TOKEN) {
-    return res.status(403).json({ error: 'Доступ запрещен' });
-  }
-
   try {
-    if (req.method === 'PUT') {
-      // Обновить игру
+    if (req.method === 'GET') {
+      const { platform, category, search } = req.query;
+      
+      let query = 'SELECT * FROM games WHERE 1=1';
+      const params: any[] = [];
+
+      if (platform && typeof platform === 'string') {
+        query += ' AND JSON_CONTAINS(platform, ?)';
+        params.push(JSON.stringify([platform]));
+      }
+
+      if (category && typeof category === 'string') {
+        query += ' AND JSON_CONTAINS(categories, ?)';
+        params.push(JSON.stringify([category]));
+      }
+
+      if (search && typeof search === 'string') {
+        query += ' AND title LIKE ?';
+        params.push(`%${search}%`);
+      }
+
+      query += ' ORDER BY created_at DESC';
+
+      const [rows] = await pool.query<GameRow[]>(query, params);
+      
+      return res.status(200).json(rows.map(normalizeGameRow));
+    }
+
+    if (req.method === 'POST') {
+      // Проверка админа
+      const adminToken = req.headers['x-admin-token'];
+      if (adminToken !== process.env.ADMIN_TOKEN) {
+        return res.status(403).json({ error: 'Доступ запрещен' });
+      }
+
       const { title, price, originalPrice, platform, categories, description, image } = req.body;
 
+      if (!title || typeof price !== 'number') {
+        return res.status(400).json({ error: 'Необходимы поля title и price' });
+      }
+
       const [result] = await pool.query<ResultSetHeader>(
-        `UPDATE games 
-         SET title = ?, price = ?, original_price = ?, description = ?, image = ?
-         WHERE id = ?`,
-        [title, price, originalPrice || null, description || '', image || '', id]
+        `INSERT INTO games (title, price, original_price, platform, categories, description, image) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          title,
+          price,
+          originalPrice || null,
+          platform ? JSON.stringify(platform) : '[]',
+          categories ? JSON.stringify(categories) : '[]',
+          description || '',
+          image || ''
+        ]
       );
-
-      if ((result as ResultSetHeader).affectedRows === 0) {
-        return res.status(404).json({ error: 'Игра не найдена' });
-      }
-
-      // Обновляем JSON-поля отдельно
-      if (platform && Array.isArray(platform)) {
-        await pool.query(
-          'UPDATE games SET platform = ? WHERE id = ?',
-          [JSON.stringify(platform), id]
-        );
-      }
-
-      if (categories && Array.isArray(categories)) {
-        await pool.query(
-          'UPDATE games SET categories = ? WHERE id = ?',
-          [JSON.stringify(categories), id]
-        );
-      }
 
       const [rows] = await pool.query<GameRow[]>(
         'SELECT * FROM games WHERE id = ?',
-        [id]
+        [result.insertId]
       );
 
-      if (!rows.length) {
-        return res.status(500).json({ error: 'Не удалось получить обновлённую игру' });
-      }
-
-      return res.status(200).json(normalizeGameRow(rows[0]));
-    }
-
-    if (req.method === 'DELETE') {
-      // Удалить игру
-      const [result] = await pool.query<ResultSetHeader>(
-        'DELETE FROM games WHERE id = ?',
-        [id]
-      );
-
-      if ((result as ResultSetHeader).affectedRows === 0) {
-        return res.status(404).json({ error: 'Игра не найдена' });
-      }
-
-      return res.status(200).json({ message: 'Игра удалена' });
+      return res.status(201).json(normalizeGameRow(rows[0]));
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
