@@ -1,5 +1,6 @@
 // API сервис для работы с сервером
-const API_URL = ''; // Пустой - значит тот же домен (Vercel автоматически роутит /api/*)
+// Для Vercel-фронта API живёт на Beget (Node-сервер)
+const API_URL = 'https://p21142rs.beget.tech'; // Базовый URL API на Beget
 const ADMIN_TOKEN = 'village-admin-2024'; // Простой токен для проверки
 
 export interface Game {
