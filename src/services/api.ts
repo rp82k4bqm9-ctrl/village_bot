@@ -1,6 +1,10 @@
-// API — запросы на тот же домен: один бэкенд для всех пользователей
-const API_URL = typeof window !== 'undefined' ? '' : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
-const getBaseUrl = () => (typeof window !== 'undefined' ? '' : API_URL) || '';
+// API: тот же домен или VITE_API_URL (если API на Timeweb, а фронт на Vercel)
+const getBaseUrl = () => {
+  if (typeof window === 'undefined') return '';
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string') return envUrl.replace(/\/$/, '');
+  return '';
+};
 const ADMIN_TOKEN = 'village-admin-2024';
 
 export interface Game {
