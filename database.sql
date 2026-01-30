@@ -1,4 +1,4 @@
--- SQL для создания таблицы игр в MySQL на Beget (или другом хостинге)
+-- SQL для создания таблицы игр в MySQL (Timeweb или другой хостинг)
 
 CREATE TABLE IF NOT EXISTS games (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,

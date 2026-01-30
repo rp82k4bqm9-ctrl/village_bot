@@ -238,7 +238,7 @@ export function AdminPage() {
             <h2 className="text-xl font-bold text-white mb-2">Ошибка подключения</h2>
             <p className="text-slate-400 mb-4">{error}</p>
             <p className="text-slate-500 text-sm mb-4">
-              Проверьте файл TIMEWEB_SETUP.md для настройки базы данных на Beget.
+              Проверьте файл TIMEWEB_SETUP.md для настройки базы данных на Timeweb.
             </p>
             <Button 
               onClick={loadGames}
@@ -262,7 +262,7 @@ export function AdminPage() {
             <Settings className="w-7 h-7 lg:w-8 lg:h-8 text-rose-400" />
             Админ-панель
           </h1>
-          <p className="text-slate-400 text-sm">Управление каталогом игр (PostgreSQL на Beget)</p>
+          <p className="text-slate-400 text-sm">Управление каталогом игр (MySQL на Timeweb)</p>
         </div>
 
         {/* Управление текстами */}

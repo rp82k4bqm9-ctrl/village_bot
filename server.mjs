@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
 
-// ---------- MySQL pool ----------
+// ---------- MySQL pool (Timeweb) ----------
 
 function parseDatabaseUrl(url) {
   if (!url) {

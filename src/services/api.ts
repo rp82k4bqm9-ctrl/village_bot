@@ -1,7 +1,7 @@
-// API сервис для работы с сервером
-// Для Vercel-фронта API живёт на Beget (Node-сервер)
-const API_URL = 'https://p21142rs.beget.tech'; // Базовый URL API на Beget
-const ADMIN_TOKEN = 'village-admin-2024'; // Простой токен для проверки
+// API — запросы на тот же домен: один бэкенд для всех пользователей
+const API_URL = typeof window !== 'undefined' ? '' : process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
+const getBaseUrl = () => (typeof window !== 'undefined' ? '' : API_URL) || '';
+const ADMIN_TOKEN = 'village-admin-2024';
 
 export interface Game {
   id: string;
@@ -24,14 +24,14 @@ export interface ContentBlock<T = any> {
 
 // Получить все игры
 export async function getGames(): Promise<Game[]> {
-  const response = await fetch(`${API_URL}/api/games`);
+  const response = await fetch(`${getBaseUrl()}/api/games`);
   if (!response.ok) throw new Error('Failed to fetch games');
   return response.json();
 }
 
 // Добавить игру (только админ)
 export async function addGame(game: Omit<Game, 'id'>): Promise<Game> {
-  const response = await fetch(`${API_URL}/api/games`, {
+  const response = await fetch(`${getBaseUrl()}/api/games`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -45,7 +45,7 @@ export async function addGame(game: Omit<Game, 'id'>): Promise<Game> {
 
 // Обновить игру (только админ)
 export async function updateGame(id: string, game: Partial<Game>): Promise<Game> {
-  const response = await fetch(`${API_URL}/api/games/${id}`, {
+  const response = await fetch(`${getBaseUrl()}/api/games/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export async function updateGame(id: string, game: Partial<Game>): Promise<Game>
 
 // Удалить игру (только админ)
 export async function deleteGame(id: string): Promise<void> {
-  const response = await fetch(`${API_URL}/api/games/${id}`, {
+  const response = await fetch(`${getBaseUrl()}/api/games/${id}`, {
     method: 'DELETE',
     headers: {
       'X-Admin-Token': ADMIN_TOKEN
@@ -70,7 +70,7 @@ export async function deleteGame(id: string): Promise<void> {
 
 // Получить текстовый блок (FAQ, о нас и т.п.)
 export async function getContent<T = any>(key: string): Promise<ContentBlock<T> | null> {
-  const response = await fetch(`${API_URL}/api/content?key=${encodeURIComponent(key)}`);
+  const response = await fetch(`${getBaseUrl()}/api/content?key=${encodeURIComponent(key)}`);
 
   if (response.status === 404) {
     return null;
@@ -86,7 +86,7 @@ export async function saveContent<T = any>(
   content: T,
   title?: string
 ): Promise<ContentBlock<T>> {
-  const response = await fetch(`${API_URL}/api/content`, {
+  const response = await fetch(`${getBaseUrl()}/api/content`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

@@ -125,7 +125,7 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
             <h2 className="text-xl font-bold text-white mb-2">Ошибка загрузки</h2>
             <p className="text-slate-400 mb-4">{error}</p>
             <p className="text-slate-500 text-sm mb-4">
-              Убедитесь, что база данных на Beget настроена правильно.
+              Убедитесь, что база данных на Timeweb настроена правильно.
             </p>
             <Button 
               onClick={loadGames}
