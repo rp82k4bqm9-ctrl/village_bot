@@ -4,9 +4,7 @@ import { neon } from '@neondatabase/serverless';
 
 // ---------- Neon (PostgreSQL) ----------
 
-// FALLBACK: если DATABASE_URL не установлена, используем строку по умолчанию
-const DATABASE_URL = process.env.DATABASE_URL || 
-  'postgresql://neondb_owner:npg_xzqHp87LMPAtep-blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_xzqHp87LMPAtep-blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
 if (!DATABASE_URL) {
   console.error('DATABASE_URL is not set');
