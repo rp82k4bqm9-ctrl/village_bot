@@ -1,16 +1,10 @@
 {
   "version": 2,
   "name": "village-gaming-store",
-  "builds": [
-    {
-      "src": "server.mjs",
-      "use": "@vercel/node"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server.mjs"
+      "destination": "/api/index.mjs"
     },
     {
       "source": "/(.*)",
