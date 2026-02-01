@@ -4,7 +4,7 @@ import { neon } from '@neondatabase/serverless';
 
 // ---------- Neon (PostgreSQL) ----------
 
-// Формируем URL из частей чтобы избежать проблем с экранированием
+// Собираем URL из частей, чтобы избежать проблем с экранированием
 const DB_PROTOCOL = 'postgresql';
 const DB_USER = 'neondb_owner';
 const DB_PASS = 'npg_xzqHp87LMPAtep';
@@ -15,8 +15,10 @@ const DB_PARAMS = 'sslmode=require&channel_binding=require';
 const FALLBACK_URL = `${DB_PROTOCOL}://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}?${DB_PARAMS}`;
 
 let DATABASE_URL = process.env.DATABASE_URL;
-if (!DATABASE_URL) {
-  console.log('DATABASE_URL not set, using fallback');
+
+// Если URL из env не валидный (нет & в параметрах), используем fallback
+if (!DATABASE_URL || !DATABASE_URL.includes('&')) {
+  console.log('DATABASE_URL not set or invalid, using fallback');
   DATABASE_URL = FALLBACK_URL;
 }
 
