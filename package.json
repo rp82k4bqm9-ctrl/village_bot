@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start:server": "node server.mjs"
+    "start:server": "node server.mjs",
+    "start:render": "node render.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
