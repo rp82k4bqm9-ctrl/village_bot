@@ -8,7 +8,10 @@ if (!process.env.DATABASE_URL) {
   console.error('DATABASE_URL is not set');
 }
 
-const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : null;
+// FALLBACK: если DATABASE_URL не установлена, используем строку по умолчанию
+const DATABASE_URL = process.env.DATABASE_URL || 
+  'postgresql://neondb_owner:npg_xzqHp87LMPAtep-blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const sql = DATABASE_URL ? neon(DATABASE_URL) : null;
 
 // ---------- Helpers ----------
 
