@@ -251,7 +251,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Запуск бота"""
-    print("🤖 Запускаю бота...")
+    print("[BOT] Starting bot...")
     
     # Создаём приложение
     application = Application.builder().token(BOT_TOKEN).build()
@@ -271,7 +271,7 @@ def main():
     # Регистрируем обработчик ошибок
     application.add_error_handler(error_handler)
     
-    print("✅ Бот запущен! Нажми Ctrl+C для остановки.")
+    print("[BOT] Bot is running! Press Ctrl+C to stop.")
     
     # Запускаем бота
     application.run_polling(allowed_updates=Update.ALL_TYPES)
