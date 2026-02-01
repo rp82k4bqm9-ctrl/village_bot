@@ -49,9 +49,13 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
       setError(null);
       const data = await getGames();
       setGames(data);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error loading games:', err);
-      setError('Не удалось загрузить каталог. Проверьте подключение к базе данных.');
+      let message = 'Не удалось загрузить каталог. Проверьте подключение к базе данных.';
+      if (err && typeof err === 'object' && 'hint' in err && typeof (err as { hint: string }).hint === 'string') {
+        message += ` ${(err as { hint: string }).hint}`;
+      }
+      setError(message);
       toast.error('Ошибка загрузки каталога');
     } finally {
       setIsLoading(false);
@@ -125,7 +129,7 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
             <h2 className="text-xl font-bold text-white mb-2">Ошибка загрузки</h2>
             <p className="text-slate-400 mb-4">{error}</p>
             <p className="text-slate-500 text-sm mb-4">
-              Убедитесь, что база данных на Timeweb настроена правильно.
+              Vercel + Neon: проверьте DATABASE_URL (postgresql://...) и выполните database-neon.sql в Neon. Инструкция: VERCEL_NEON_SETUP.md
             </p>
             <Button 
               onClick={loadGames}

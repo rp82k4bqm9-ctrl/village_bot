@@ -29,7 +29,12 @@ export interface ContentBlock<T = any> {
 // Получить все игры
 export async function getGames(): Promise<Game[]> {
   const response = await fetch(`${getBaseUrl()}/api/games`);
-  if (!response.ok) throw new Error('Failed to fetch games');
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    const err = new Error(data?.error ?? 'Failed to fetch games') as Error & { hint?: string };
+    err.hint = data?.hint;
+    throw err;
+  }
   return response.json();
 }
 

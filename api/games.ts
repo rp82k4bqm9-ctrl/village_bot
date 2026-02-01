@@ -68,9 +68,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (error: unknown) {
     console.error('Database error:', error);
+    const msg = error instanceof Error ? error.message : String(error);
+    const hint =
+      msg.includes('relation') && msg.includes('games')
+        ? 'Run database-neon.sql in Neon SQL Editor (VERCEL_NEON_SETUP.md)'
+        : !process.env.DATABASE_URL
+          ? 'Set DATABASE_URL on Vercel to Neon postgresql://... (VERCEL_NEON_SETUP.md)'
+          : undefined;
     return res.status(500).json({
       error: 'Database connection failed',
-      details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined,
+      details: process.env.NODE_ENV === 'development' ? msg : undefined,
+      hint,
     });
   }
 }
