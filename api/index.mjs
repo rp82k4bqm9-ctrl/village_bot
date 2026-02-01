@@ -4,13 +4,23 @@ import { neon } from '@neondatabase/serverless';
 
 // ---------- Neon (PostgreSQL) ----------
 
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_xzqHp87LMPAtep-blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+// Формируем URL из частей чтобы избежать проблем с экранированием
+const DB_PROTOCOL = 'postgresql';
+const DB_USER = 'neondb_owner';
+const DB_PASS = 'npg_xzqHp87LMPAtep';
+const DB_HOST = 'blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech';
+const DB_NAME = 'neondb';
+const DB_PARAMS = 'sslmode=require&channel_binding=require';
 
+const FALLBACK_URL = `${DB_PROTOCOL}://${DB_USER}:${DB_PASS}@${DB_HOST}/${DB_NAME}?${DB_PARAMS}`;
+
+let DATABASE_URL = process.env.DATABASE_URL;
 if (!DATABASE_URL) {
-  console.error('DATABASE_URL is not set');
+  console.log('DATABASE_URL not set, using fallback');
+  DATABASE_URL = FALLBACK_URL;
 }
 
-const sql = DATABASE_URL ? neon(DATABASE_URL) : null;
+const sql = neon(DATABASE_URL);
 
 // ---------- Helpers ----------
 
@@ -41,9 +51,6 @@ app.use(express.json());
 // Health check
 app.get('/api/health', async (req, res) => {
   try {
-    if (!sql) {
-      return res.status(500).json({ error: 'Database not connected' });
-    }
     await sql`SELECT 1`;
     res.json({ status: 'ok', db: 'connected' });
   } catch (error) {
@@ -56,9 +63,6 @@ app.get('/api/health', async (req, res) => {
 
 app.get('/api/games', async (req, res) => {
   try {
-    if (!sql) {
-      return res.status(500).json({ error: 'Database not connected' });
-    }
     const rows = await sql`SELECT * FROM games ORDER BY created_at DESC`;
     const normalized = rows.map(normalizeGameRow);
     res.status(200).json(normalized);
