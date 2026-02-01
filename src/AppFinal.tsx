@@ -14,22 +14,33 @@ import { AboutPage } from './pages/AboutPage';
 import { AdminPage } from './pages/AdminPage';
 import { CartPage } from './pages/CartPage';
 
+// Список ID администраторов (Telegram ID)
+const ADMIN_IDS = [6153426860, 8128537922];
+
 // Проверка админ-доступа
 function checkAdminAccess(): boolean {
   try {
     const urlParams = new URLSearchParams(window.location.search);
     const adminParam = urlParams.get('admin');
+    
+    // Если в URL ?admin=true - даём доступ и сохраняем
     if (adminParam === 'true') {
       localStorage.setItem('village_admin_mode', 'true');
       return true;
     }
     
+    // Проверяем сохранённый режим
     const savedAdmin = localStorage.getItem('village_admin_mode');
     if (savedAdmin === 'true') return true;
     
-    if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
-      const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
-      return [6153426860, 123456].includes(userId);
+    // Проверяем Telegram WebApp user ID
+    const tg = window.Telegram?.WebApp;
+    if (tg?.initDataUnsafe?.user) {
+      const userId = tg.initDataUnsafe.user.id;
+      if (ADMIN_IDS.includes(userId)) {
+        localStorage.setItem('village_admin_mode', 'true');
+        return true;
+      }
     }
     
     return false;
