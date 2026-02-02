@@ -4,18 +4,11 @@ import { neon } from '@neondatabase/serverless';
 
 // ---------- Neon (PostgreSQL) ----------
 
-if (!process.env.DATABASE_URL) {
-  console.error('DATABASE_URL is not set');
-  process.exit(1);
-}
+// Жёстко прописанные данные подключения (без переменных окружения)
+const DATABASE_URL = 'postgresql://neondb_owner:npg_xzqHp87LMPAtep@blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
-if (!process.env.DATABASE_URL.startsWith('postgresql://') && !process.env.DATABASE_URL.startsWith('postgres://')) {
-  console.error('Invalid DATABASE_URL format. Expected postgresql://...');
-  process.exit(1);
-}
-
-const sql = neon(process.env.DATABASE_URL);
-console.log('Neon PostgreSQL client initialized');
+const sql = neon(DATABASE_URL);
+console.log('Neon PostgreSQL client initialized (hardcoded)');
 
 // ---------- Helpers ----------
 
@@ -34,7 +27,7 @@ function normalizeGameRow(row) {
   };
 }
 
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'village-admin-2024';
+const ADMIN_TOKEN = 'village-admin-2024';
 
 // ---------- Express app ----------
 
