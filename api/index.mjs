@@ -1,17 +1,19 @@
-import express from 'express';
-import cors from 'cors';
 import { neon } from '@neondatabase/serverless';
 
 // ---------- Neon (PostgreSQL) ----------
+const DATABASE_URL = 'postgresql://neondb_owner:npg_xzqHp87LMPAtep@blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require';
+const ADMIN_TOKEN = 'village-admin-2024';
 
-// Жёстко прописанные данные подключения (без переменных окружения)
-const DATABASE_URL = 'postgresql://neondb_owner:npg_xzqHp87LMPAtep@blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
-
-const sql = neon(DATABASE_URL);
-console.log('Neon PostgreSQL client initialized (hardcoded)');
+// Ленивое подключение к БД
+let sqlInstance = null;
+function getSql() {
+  if (!sqlInstance) {
+    sqlInstance = neon(DATABASE_URL);
+  }
+  return sqlInstance;
+}
 
 // ---------- Helpers ----------
-
 function normalizeGameRow(row) {
   return {
     id: row.id,
@@ -27,188 +29,151 @@ function normalizeGameRow(row) {
   };
 }
 
-const ADMIN_TOKEN = 'village-admin-2024';
+function setCorsHeaders(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Token');
+}
 
-// ---------- Express app ----------
-
-const app = express();
-
-app.use(cors({ origin: '*', credentials: false }));
-app.use(express.json());
-
-// Health check
-app.get('/api/health', async (req, res) => {
-  try {
-    await sql`SELECT 1`;
-    res.json({ status: 'ok', db: 'connected' });
-  } catch (error) {
-    console.error('Health check error:', error);
-    res.status(500).json({ error: 'Database error', message: error.message });
+// ---------- Main Handler ----------
+export default async function handler(req, res) {
+  setCorsHeaders(res);
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
-});
 
-// ---------- Games API ----------
+  const { url, method } = req;
+  const path = url.split('?')[0];
 
-app.get('/api/games', async (req, res) => {
   try {
-    const rows = await sql`SELECT * FROM games ORDER BY created_at DESC`;
-    const normalized = rows.map(normalizeGameRow);
-    res.status(200).json(normalized);
-  } catch (error) {
-    console.error('GET /api/games error:', error);
-    res.status(500).json({ error: 'Database error', message: error.message });
-  }
-});
-
-app.post('/api/games', async (req, res) => {
-  try {
-    const adminToken = req.headers['x-admin-token'];
-    if (adminToken !== ADMIN_TOKEN) {
-      return res.status(403).json({ error: 'Доступ запрещен' });
+    // Health check
+    if (path === '/api/health' && method === 'GET') {
+      const sql = getSql();
+      await sql`SELECT 1`;
+      return res.status(200).json({ status: 'ok', db: 'connected' });
     }
 
-    const { title, price, originalPrice, platform, categories, description, image } = req.body;
-
-    const [row] = await sql`
-      INSERT INTO games (title, price, original_price, platform, categories, description, image)
-      VALUES (${title}, ${price}, ${originalPrice || null}, ${platform || []}, ${categories || []}, ${description || ''}, ${image || ''})
-      RETURNING *
-    `;
-
-    res.status(201).json(normalizeGameRow(row));
-  } catch (error) {
-    console.error('POST /api/games error:', error);
-    res.status(500).json({ error: 'Database error', message: error.message });
-  }
-});
-
-app.put('/api/games/:id', async (req, res) => {
-  try {
-    const adminToken = req.headers['x-admin-token'];
-    if (adminToken !== ADMIN_TOKEN) {
-      return res.status(403).json({ error: 'Доступ запрещен' });
+    // GET /api/games
+    if (path === '/api/games' && method === 'GET') {
+      const sql = getSql();
+      const rows = await sql`SELECT * FROM games ORDER BY created_at DESC`;
+      return res.status(200).json(rows.map(normalizeGameRow));
     }
 
-    const { id } = req.params;
-    const { title, price, originalPrice, platform, categories, description, image } = req.body;
-
-    const [row] = await sql`
-      UPDATE games
-      SET title = ${title},
-          price = ${price},
-          original_price = ${originalPrice || null},
-          description = ${description || ''},
-          image = ${image || ''},
-          platform = ${platform || []},
-          categories = ${categories || []},
-          updated_at = NOW()
-      WHERE id = ${id}
-      RETURNING *
-    `;
-
-    if (!row) {
-      return res.status(404).json({ error: 'Игра не найдена' });
+    // POST /api/games
+    if (path === '/api/games' && method === 'POST') {
+      const adminToken = req.headers['x-admin-token'];
+      if (adminToken !== ADMIN_TOKEN) {
+        return res.status(403).json({ error: 'Доступ запрещен' });
+      }
+      const sql = getSql();
+      const { title, price, originalPrice, platform, categories, description, image } = req.body || {};
+      const [row] = await sql`
+        INSERT INTO games (title, price, original_price, platform, categories, description, image)
+        VALUES (${title}, ${price}, ${originalPrice || null}, ${platform || []}, ${categories || []}, ${description || ''}, ${image || ''})
+        RETURNING *
+      `;
+      return res.status(201).json(normalizeGameRow(row));
     }
 
-    res.status(200).json(normalizeGameRow(row));
-  } catch (error) {
-    console.error('PUT /api/games/:id error:', error);
-    res.status(500).json({ error: 'Database error', message: error.message });
-  }
-});
-
-app.delete('/api/games/:id', async (req, res) => {
-  try {
-    const adminToken = req.headers['x-admin-token'];
-    if (adminToken !== ADMIN_TOKEN) {
-      return res.status(403).json({ error: 'Доступ запрещен' });
-    }
-
-    const { id } = req.params;
-
-    const [row] = await sql`DELETE FROM games WHERE id = ${id} RETURNING *`;
-
-    if (!row) {
-      return res.status(404).json({ error: 'Игра не найдена' });
-    }
-
-    res.status(200).json({ message: 'Игра удалена' });
-  } catch (error) {
-    console.error('DELETE /api/games/:id error:', error);
-    res.status(500).json({ error: 'Database error', message: error.message });
-  }
-});
-
-// ---------- Content API ----------
-
-app.get('/api/content', async (req, res) => {
-  try {
-    const key = req.query.key;
-
-    if (!key || typeof key !== 'string') {
-      return res.status(400).json({ error: 'Параметр key обязателен' });
-    }
-
-    const [row] = await sql`SELECT "key", title, content, updated_at FROM content_blocks WHERE "key" = ${key}`;
-
-    if (!row) {
-      return res.status(404).json({ error: 'Контент не найден' });
-    }
-
-    res.status(200).json({
-      key: row.key,
-      title: row.title,
-      content: row.content,
-      updated_at: row.updated_at,
-    });
-  } catch (error) {
-    console.error('GET /api/content error:', error);
-    res.status(500).json({ error: 'Database error', message: error.message });
-  }
-});
-
-app.put('/api/content', async (req, res) => {
-  try {
-    const adminToken = req.headers['x-admin-token'];
-    if (adminToken !== ADMIN_TOKEN) {
-      return res.status(403).json({ error: 'Доступ запрещен' });
-    }
-
-    const { key, title, content } = req.body || {};
-
-    if (!key) {
-      return res.status(400).json({ error: 'Поле key обязательно' });
-    }
-
-    if (!content) {
-      return res.status(400).json({ error: 'Поле content обязательно' });
-    }
-
-    const [row] = await sql`
-      INSERT INTO content_blocks ("key", title, content)
-      VALUES (${key}, ${title || null}, ${content})
-      ON CONFLICT ("key") DO UPDATE
-        SET title = COALESCE(EXCLUDED.title, content_blocks.title),
-            content = EXCLUDED.content,
+    // PUT /api/games/:id
+    if (path.startsWith('/api/games/') && method === 'PUT') {
+      const adminToken = req.headers['x-admin-token'];
+      if (adminToken !== ADMIN_TOKEN) {
+        return res.status(403).json({ error: 'Доступ запрещен' });
+      }
+      const id = path.split('/')[3];
+      const sql = getSql();
+      const { title, price, originalPrice, platform, categories, description, image } = req.body || {};
+      const [row] = await sql`
+        UPDATE games
+        SET title = ${title},
+            price = ${price},
+            original_price = ${originalPrice || null},
+            description = ${description || ''},
+            image = ${image || ''},
+            platform = ${platform || []},
+            categories = ${categories || []},
             updated_at = NOW()
-      RETURNING *
-    `;
-
-    if (!row) {
-      return res.status(500).json({ error: 'Не удалось получить сохранённый контент' });
+        WHERE id = ${id}
+        RETURNING *
+      `;
+      if (!row) {
+        return res.status(404).json({ error: 'Игра не найдена' });
+      }
+      return res.status(200).json(normalizeGameRow(row));
     }
 
-    res.status(200).json({
-      key: row.key,
-      title: row.title,
-      content: row.content,
-      updated_at: row.updated_at,
-    });
-  } catch (error) {
-    console.error('PUT /api/content error:', error);
-    res.status(500).json({ error: 'Database error', message: error.message });
-  }
-});
+    // DELETE /api/games/:id
+    if (path.startsWith('/api/games/') && method === 'DELETE') {
+      const adminToken = req.headers['x-admin-token'];
+      if (adminToken !== ADMIN_TOKEN) {
+        return res.status(403).json({ error: 'Доступ запрещен' });
+      }
+      const id = path.split('/')[3];
+      const sql = getSql();
+      const [row] = await sql`DELETE FROM games WHERE id = ${id} RETURNING *`;
+      if (!row) {
+        return res.status(404).json({ error: 'Игра не найдена' });
+      }
+      return res.status(200).json({ message: 'Игра удалена' });
+    }
 
-// Export for Vercel serverless
-export default app;
+    // GET /api/content?key=...
+    if (path === '/api/content' && method === 'GET') {
+      const key = new URL(req.url, `http://${req.headers.host}`).searchParams.get('key');
+      if (!key) {
+        return res.status(400).json({ error: 'Параметр key обязателен' });
+      }
+      const sql = getSql();
+      const [row] = await sql`SELECT "key", title, content, updated_at FROM content_blocks WHERE "key" = ${key}`;
+      if (!row) {
+        return res.status(404).json({ error: 'Контент не найден' });
+      }
+      return res.status(200).json({
+        key: row.key,
+        title: row.title,
+        content: row.content,
+        updated_at: row.updated_at,
+      });
+    }
+
+    // PUT /api/content
+    if (path === '/api/content' && method === 'PUT') {
+      const adminToken = req.headers['x-admin-token'];
+      if (adminToken !== ADMIN_TOKEN) {
+        return res.status(403).json({ error: 'Доступ запрещен' });
+      }
+      const { key, title, content } = req.body || {};
+      if (!key) {
+        return res.status(400).json({ error: 'Поле key обязательно' });
+      }
+      if (!content) {
+        return res.status(400).json({ error: 'Поле content обязательно' });
+      }
+      const sql = getSql();
+      const [row] = await sql`
+        INSERT INTO content_blocks ("key", title, content)
+        VALUES (${key}, ${title || null}, ${content})
+        ON CONFLICT ("key") DO UPDATE
+          SET title = COALESCE(EXCLUDED.title, content_blocks.title),
+              content = EXCLUDED.content,
+              updated_at = NOW()
+        RETURNING *
+      `;
+      return res.status(200).json({
+        key: row.key,
+        title: row.title,
+        content: row.content,
+        updated_at: row.updated_at,
+      });
+    }
+
+    return res.status(404).json({ error: 'Not found' });
+
+  } catch (error) {
+    console.error('API Error:', error);
+    return res.status(500).json({ error: 'Database error', message: error.message });
+  }
+}
