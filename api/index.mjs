@@ -35,6 +35,32 @@ function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Token');
 }
 
+// ---------- Body Parser ----------
+async function getBody(req) {
+  if (req.body && typeof req.body === 'object') {
+    return req.body;
+  }
+  
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', chunk => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      try {
+        if (data) {
+          resolve(JSON.parse(data));
+        } else {
+          resolve({});
+        }
+      } catch (e) {
+        resolve({});
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
 // ---------- Main Handler ----------
 export default async function handler(req, res) {
   setCorsHeaders(res);
@@ -68,7 +94,8 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'Доступ запрещен' });
       }
       const sql = getSql();
-      const { title, price, originalPrice, platform, categories, description, image } = req.body || {};
+      const body = await getBody(req);
+      const { title, price, originalPrice, platform, categories, description, image } = body;
       const [row] = await sql`
         INSERT INTO games (title, price, original_price, platform, categories, description, image)
         VALUES (${title}, ${price}, ${originalPrice || null}, ${platform || []}, ${categories || []}, ${description || ''}, ${image || ''})
@@ -85,7 +112,8 @@ export default async function handler(req, res) {
       }
       const id = path.split('/')[3];
       const sql = getSql();
-      const { title, price, originalPrice, platform, categories, description, image } = req.body || {};
+      const body = await getBody(req);
+      const { title, price, originalPrice, platform, categories, description, image } = body;
       const [row] = await sql`
         UPDATE games
         SET title = ${title},
@@ -145,7 +173,8 @@ export default async function handler(req, res) {
       if (adminToken !== ADMIN_TOKEN) {
         return res.status(403).json({ error: 'Доступ запрещен' });
       }
-      const { key, title, content } = req.body || {};
+      const body = await getBody(req);
+      const { key, title, content } = body;
       if (!key) {
         return res.status(400).json({ error: 'Поле key обязательно' });
       }
