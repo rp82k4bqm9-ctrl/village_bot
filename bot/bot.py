@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 BOT_TOKEN = os.getenv('BOT_TOKEN')
-API_URL = os.getenv('API_URL', 'https://village-gaming-store.vercel.app')  # Замени на свой URL
+API_URL = os.getenv('API_URL', 'https://village-bot-gilt.vercel.app')  # URL API на Vercel
 
 if not BOT_TOKEN:
     raise ValueError("❌ BOT_TOKEN не установлен! Получи токен у @BotFather")
