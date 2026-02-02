@@ -96,13 +96,31 @@ export default async function handler(req, res) {
       }
       const sql = getSql();
       const body = await getBody(req);
+      
+      console.log('POST /api/games - body:', JSON.stringify(body));
+      
       const { title, price, originalPrice, platform, categories, description, image } = body;
-      const [row] = await sql`
-        INSERT INTO games (title, price, original_price, platform, categories, description, image)
-        VALUES (${title}, ${price}, ${originalPrice || null}, ${platform || []}, ${categories || []}, ${description || ''}, ${image || ''})
-        RETURNING *
-      `;
-      return res.status(201).json(normalizeGameRow(row));
+      
+      // Проверка обязательных полей
+      if (!title || title.trim() === '') {
+        return res.status(400).json({ error: 'Название игры обязательно' });
+      }
+      if (price === undefined || price === null || isNaN(Number(price))) {
+        return res.status(400).json({ error: 'Цена игры обязательна и должна быть числом' });
+      }
+      
+      try {
+        const [row] = await sql`
+          INSERT INTO games (title, price, original_price, platform, categories, description, image)
+          VALUES (${title.trim()}, ${Number(price)}, ${originalPrice ? Number(originalPrice) : null}, ${platform || []}, ${categories || []}, ${description || ''}, ${image || ''})
+          RETURNING *
+        `;
+        console.log('Game created:', row);
+        return res.status(201).json(normalizeGameRow(row));
+      } catch (dbError) {
+        console.error('Database error on INSERT:', dbError);
+        return res.status(500).json({ error: 'Ошибка базы данных', message: dbError.message });
+      }
     }
 
     // PUT /api/games/:id
