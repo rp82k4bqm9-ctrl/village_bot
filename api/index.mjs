@@ -1,8 +1,9 @@
 import { neon } from '@neondatabase/serverless';
 
 // ---------- Neon (PostgreSQL) ----------
-const DATABASE_URL = 'postgresql://neondb_owner:npg_xzqHp87LMPAtep@blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require';
-const ADMIN_TOKEN = 'village-admin-2024';
+// Приоритет: переменные окружения (для Vercel) > хардкод (для локальной разработки)
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_xzqHp87LMPAtep@blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require';
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'village-admin-2024';
 
 // Ленивое подключение к БД
 let sqlInstance = null;
