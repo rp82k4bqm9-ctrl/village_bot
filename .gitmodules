@@ -1,0 +1,6 @@
+[submodule "village"]
+	path = village
+	url = https://github.com/rp82k4bqm9-ctrl/village.git
+[submodule "village_bot"]
+	path = village_bot
+	url = https://github.com/rp82k4bqm9-ctrl/village_bot.git
