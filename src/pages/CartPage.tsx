@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ShoppingCart, 
   Trash2, 
@@ -9,7 +9,7 @@ import {
   Package,
   User,
   Phone,
-  Mail,
+  MessageCircle,
   MessageSquare,
   Send,
   CheckCircle,
@@ -31,6 +31,14 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   default: Package
 };
 
+// Получение данных пользователя Telegram
+function getTelegramUser() {
+  if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initDataUnsafe?.user) {
+    return window.Telegram.WebApp.initDataUnsafe.user;
+  }
+  return null;
+}
+
 // Отправка заказа в Telegram
 async function sendOrderToTelegram(orderData: {
   items: CartItem[];
@@ -38,7 +46,8 @@ async function sendOrderToTelegram(orderData: {
   customer: {
     name: string;
     phone: string;
-    email?: string;
+    telegramUsername?: string;
+    telegramUserId?: number;
     comment?: string;
   };
 }) {
@@ -49,12 +58,18 @@ async function sendOrderToTelegram(orderData: {
     `• ${item.title} — ${item.price} ₽ x${item.quantity} = ${item.price * item.quantity} ₽`
   ).join('\n');
   
+  const telegramLink = orderData.customer.telegramUsername 
+    ? `<a href="https://t.me/${orderData.customer.telegramUsername}">@${orderData.customer.telegramUsername}</a>`
+    : orderData.customer.telegramUserId 
+      ? `ID: ${orderData.customer.telegramUserId}`
+      : 'Не указан';
+  
   const message = `
 🛒 <b>НОВЫЙ ЗАКАЗ!</b>
 
 👤 <b>Клиент:</b> ${orderData.customer.name}
 📱 <b>Телефон:</b> ${orderData.customer.phone}
-${orderData.customer.email ? `📧 <b>Email:</b> ${orderData.customer.email}` : ''}
+✈️ <b>Telegram:</b> ${telegramLink}
 
 📦 <b>Товары:</b>
 ${itemsList}
@@ -95,10 +110,23 @@ export function CartPage() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    email: '',
     comment: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [telegramUser, setTelegramUser] = useState<{username?: string; id?: number; first_name?: string; last_name?: string} | null>(null);
+  
+  // Загружаем данные Telegram пользователя
+  useEffect(() => {
+    const tgUser = getTelegramUser();
+    if (tgUser) {
+      setTelegramUser(tgUser);
+      // Автозаполняем имя из Telegram если есть
+      if (tgUser.first_name && !formData.name) {
+        const fullName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+        setFormData(prev => ({ ...prev, name: fullName }));
+      }
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -111,10 +139,6 @@ export function CartPage() {
       newErrors.phone = 'Введите телефон';
     } else if (!/^\+?[\d\s()-]{10,}$/.test(formData.phone)) {
       newErrors.phone = 'Некорректный номер';
-    }
-    
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Некорректный email';
     }
     
     setErrors(newErrors);
@@ -132,7 +156,11 @@ export function CartPage() {
     const success = await sendOrderToTelegram({
       items,
       total,
-      customer: formData
+      customer: {
+        ...formData,
+        telegramUsername: telegramUser?.username,
+        telegramUserId: telegramUser?.id
+      }
     });
     
     if (success) {
@@ -244,23 +272,24 @@ export function CartPage() {
                   {errors.phone && <p className="text-red-400 text-sm">{errors.phone}</p>}
                 </div>
 
-                {/* Email */}
+                {/* Telegram */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[#d4af37]" />
-                    Email
+                  <Label className="text-white flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-[#0088cc]" />
+                    Telegram
                   </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="example@mail.com (необязательно)"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={`bg-[#0d0d0d] border-slate-700 text-white placeholder:text-slate-600 ${
-                      errors.email ? 'border-red-500' : ''
-                    }`}
-                  />
-                  {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
+                  {telegramUser ? (
+                    <div className="flex items-center gap-2 bg-[#0088cc]/10 border border-[#0088cc]/30 rounded-md px-3 py-2">
+                      <span className="text-white">
+                        {telegramUser.username ? `@${telegramUser.username}` : `${telegramUser.first_name} ${telegramUser.last_name || ''}`}
+                      </span>
+                      <span className="text-green-400 text-xs">✓ Автоматически</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 bg-slate-800/50 border border-slate-700 rounded-md px-3 py-2">
+                      <span className="text-slate-400 text-sm">Откройте через Telegram для автозаполнения</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Комментарий */}
