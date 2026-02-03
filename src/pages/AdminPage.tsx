@@ -616,9 +616,17 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
       
       const data = await response.json();
       
+      console.log('ImgBB response:', data);
+      
       if (data.success) {
-        setFormData({ ...formData, image: data.data.url });
-        toast.success('Изображение загружено!');
+        // ImgBB возвращает несколько URL, используем display_url или url
+        const imageUrl = data.data.display_url || data.data.url || data.data.thumb?.url;
+        if (imageUrl) {
+          setFormData({ ...formData, image: imageUrl });
+          toast.success('Изображение загружено!');
+        } else {
+          throw new Error('Не получен URL изображения');
+        }
       } else {
         throw new Error(data.error?.message || 'Ошибка загрузки');
       }

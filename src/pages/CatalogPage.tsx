@@ -230,10 +230,17 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                       src={game.image} 
                       alt={game.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Если изображение не загрузилось, показываем заглушку
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
-                  ) : (
+                  ) : null}
+                  {/* Заглушка - показывается если нет image или произошла ошибка */}
+                  <div className={`${game.image ? 'hidden' : 'flex'} items-center justify-center w-full h-full`}>
                     <Gamepad2 className="w-12 h-12 text-slate-600" />
-                  )}
+                  </div>
+                  
                   {/* Бейджи */}
                   <div className="absolute top-2 left-2 flex flex-wrap gap-1">
                     {game.categories.includes('sale') && game.original_price && (
