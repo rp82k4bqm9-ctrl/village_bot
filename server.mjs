@@ -5,7 +5,7 @@ import { neon } from '@neondatabase/serverless';
 // ---------- Neon (PostgreSQL) ----------
 
 // Жёстко прописанные данные подключения (без переменных окружения)
-const DATABASE_URL = 'postgresql://neondb_owner:npg_xzqHp87LMPAtep@blue-moon-abhzsn8s-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const DATABASE_URL = 'postgresql://neondb_owner:npg_DkzXPE5flt8N@ep-raspy-bush-ah8ly5zd-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
 
 const sql = neon(DATABASE_URL);
 console.log('Neon PostgreSQL client initialized (hardcoded)');
@@ -70,18 +70,22 @@ app.post('/api/games', async (req, res) => {
       return res.status(403).json({ error: 'Доступ запрещен' });
     }
 
-    const { title, price, originalPrice, platform, categories, description, image } = req.body;
+    const { title, price, original_price, platform, categories, description, image } = req.body;
+
+    // Преобразуем массивы в JSON для полей jsonb
+    const platformJson = JSON.stringify(platform || []);
+    const categoriesJson = JSON.stringify(categories || []);
 
     const [row] = await sql`
       INSERT INTO games (title, price, original_price, platform, categories, description, image)
-      VALUES (${title}, ${price}, ${originalPrice || null}, ${platform || []}, ${categories || []}, ${description || ''}, ${image || ''})
+      VALUES (${title}, ${price}, ${original_price || null}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
       RETURNING *
     `;
 
     res.status(201).json(normalizeGameRow(row));
   } catch (error) {
     console.error('POST /api/games error:', error);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).json({ error: 'Database error', details: error.message });
   }
 });
 
@@ -93,17 +97,21 @@ app.put('/api/games/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { title, price, originalPrice, platform, categories, description, image } = req.body;
+    const { title, price, original_price, platform, categories, description, image } = req.body;
+
+    // Преобразуем массивы в JSON для полей jsonb
+    const platformJson = JSON.stringify(platform || []);
+    const categoriesJson = JSON.stringify(categories || []);
 
     const [row] = await sql`
       UPDATE games
       SET title = ${title},
           price = ${price},
-          original_price = ${originalPrice || null},
+          original_price = ${original_price || null},
           description = ${description || ''},
           image = ${image || ''},
-          platform = ${platform || []},
-          categories = ${categories || []},
+          platform = ${platformJson}::jsonb,
+          categories = ${categoriesJson}::jsonb,
           updated_at = NOW()
       WHERE id = ${id}
       RETURNING *
@@ -116,7 +124,7 @@ app.put('/api/games/:id', async (req, res) => {
     res.status(200).json(normalizeGameRow(row));
   } catch (error) {
     console.error('PUT /api/games/:id error:', error);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).json({ error: 'Database error', details: error.message });
   }
 });
 
