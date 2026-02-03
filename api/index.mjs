@@ -99,7 +99,7 @@ export default async function handler(req, res) {
       
       console.log('POST /api/games - body:', JSON.stringify(body));
       
-      const { title, price, originalPrice, platform, categories, description, image } = body;
+      const { title, price, original_price, originalPrice, platform, categories, description, image } = body;
       
       // Проверка обязательных полей
       if (!title || title.trim() === '') {
@@ -109,10 +109,15 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Цена игры обязательна и должна быть числом' });
       }
       
+      // Преобразуем массивы в JSON для PostgreSQL jsonb
+      const platformJson = JSON.stringify(platform || []);
+      const categoriesJson = JSON.stringify(categories || []);
+      const origPrice = original_price || originalPrice;
+      
       try {
         const [row] = await sql`
           INSERT INTO games (title, price, original_price, platform, categories, description, image)
-          VALUES (${title.trim()}, ${Number(price)}, ${originalPrice ? Number(originalPrice) : null}, ${platform || []}, ${categories || []}, ${description || ''}, ${image || ''})
+          VALUES (${title.trim()}, ${Number(price)}, ${origPrice ? Number(origPrice) : null}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
           RETURNING *
         `;
         console.log('Game created:', row);
@@ -132,16 +137,22 @@ export default async function handler(req, res) {
       const id = path.split('/')[3];
       const sql = getSql();
       const body = await getBody(req);
-      const { title, price, originalPrice, platform, categories, description, image } = body;
+      const { title, price, original_price, originalPrice, platform, categories, description, image } = body;
+      
+      // Преобразуем массивы в JSON для PostgreSQL jsonb
+      const platformJson = JSON.stringify(platform || []);
+      const categoriesJson = JSON.stringify(categories || []);
+      const origPrice = original_price || originalPrice;
+      
       const [row] = await sql`
         UPDATE games
         SET title = ${title},
             price = ${price},
-            original_price = ${originalPrice || null},
+            original_price = ${origPrice ? Number(origPrice) : null},
             description = ${description || ''},
             image = ${image || ''},
-            platform = ${platform || []},
-            categories = ${categories || []},
+            platform = ${platformJson}::jsonb,
+            categories = ${categoriesJson}::jsonb,
             updated_at = NOW()
         WHERE id = ${id}
         RETURNING *
