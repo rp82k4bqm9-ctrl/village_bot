@@ -130,8 +130,9 @@ export function AdminPage() {
       setIsAddDialogOpen(false);
       resetForm();
       toast.success('Игра добавлена!');
-    } catch {
-      toast.error('Ошибка добавления игры');
+    } catch (error) {
+      console.error('Add game error:', error);
+      toast.error('Ошибка добавления игры: ' + (error instanceof Error ? error.message : 'Неизвестная ошибка'));
     }
   };
 

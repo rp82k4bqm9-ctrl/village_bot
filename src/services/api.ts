@@ -86,7 +86,10 @@ export async function getGames(): Promise<Game[]> {
 
 // Добавить игру (только админ)
 export async function addGame(game: Omit<Game, 'id'>): Promise<Game> {
-  const response = await fetch(`${getBaseUrl()}/api/games`, {
+  const url = `${getBaseUrl()}/api/games`;
+  console.log('Adding game to:', url, game);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -94,8 +97,15 @@ export async function addGame(game: Omit<Game, 'id'>): Promise<Game> {
     },
     body: JSON.stringify(game)
   });
-  if (!response.ok) throw new Error('Failed to add game');
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Add game failed:', response.status, errorText);
+    throw new Error(`Failed to add game: ${response.status} ${errorText}`);
+  }
+  
   const data = await response.json();
+  console.log('Game added:', data);
   return normalizeGame(data);
 }
 
