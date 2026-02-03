@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useReducer, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export interface CartItem {
@@ -22,7 +22,8 @@ type CartAction =
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartItem[] };
 
-const CartContext = createContext<{
+// eslint-disable-next-line react-refresh/only-export-components
+export const CartContext = createContext<{
   items: CartItem[];
   total: number;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
@@ -93,13 +94,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         total: 0,
       };
     
-    case 'LOAD_CART':
+    case 'LOAD_CART': {
       const newTotal = action.payload.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       
       return {
         items: action.payload,
         total: newTotal,
       };
+    }
     
     default:
       return state;
@@ -165,12 +167,4 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       {children}
     </CartContext.Provider>
   );
-}
-
-export function useCart() {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
 }

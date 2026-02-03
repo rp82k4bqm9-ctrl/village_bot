@@ -12,14 +12,28 @@ console.log('Neon PostgreSQL client initialized (hardcoded)');
 
 // ---------- Helpers ----------
 
+// Вспомогательная функция для безопасного парсинга массивов из БД
+function parseDbArray(field) {
+  if (Array.isArray(field)) return field;
+  if (typeof field === 'string') {
+    try {
+      const parsed = JSON.parse(field);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return field ? [field] : [];
+    }
+  }
+  return [];
+}
+
 function normalizeGameRow(row) {
   return {
     id: row.id,
     title: row.title,
     price: row.price,
     original_price: row.original_price,
-    platform: row.platform || [],
-    categories: row.categories || [],
+    platform: parseDbArray(row.platform),
+    categories: parseDbArray(row.categories),
     description: row.description ?? '',
     image: row.image ?? '',
     created_at: row.created_at,

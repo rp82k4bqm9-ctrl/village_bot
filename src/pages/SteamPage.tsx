@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useCart } from '@/contexts/CartContext';
+import { useCart } from '@/hooks/useCart';
 
 const STEAM_TOPUP_AMOUNTS = [
   { id: 'steam-100', amount: 100, bonus: 0 },

@@ -10,37 +10,49 @@ import {
   Settings,
   Menu,
   X,
-  Star
+  Star,
+  type LucideIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
-interface MainNavigationProps {
-  isAdmin?: boolean;
+interface NavigationItem {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+  path: string;
+  color: string;
 }
 
-export function MainNavigation({ isAdmin }: MainNavigationProps) {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+interface MobileBottomNavProps {
+  navigationItems: NavigationItem[];
+  moreItems: NavigationItem[];
+  isActive: (path: string) => boolean;
+  navigate: (path: string) => void;
+  isMobileMenuOpen: boolean;
+  setIsMobileMenuOpen: (open: boolean) => void;
+  isAdmin: boolean;
+}
 
-  const navigationItems = [
-    { id: 'home', name: 'Главная', icon: Home, path: '/', color: 'text-white' },
-    { id: 'catalog', name: 'Каталог', icon: Gamepad2, path: '/catalog', color: 'text-[#d4af37]' },
-    { id: 'cart', name: 'Корзина', icon: ShoppingCart, path: '/cart', color: 'text-[#daa520]' },
-    ...(isAdmin ? [{ id: 'admin', name: 'Админ', icon: Settings, path: '/admin', color: 'text-rose-400' }] : [])
-  ];
+interface DesktopNavProps {
+  navigationItems: NavigationItem[];
+  moreItems: NavigationItem[];
+  isActive: (path: string) => boolean;
+  navigate: (path: string) => void;
+  isAdmin: boolean;
+}
 
-  const moreItems = [
-    { id: 'faq', name: 'FAQ', icon: HelpCircle, path: '/faq', color: 'text-[#b8860b]' },
-    { id: 'support', name: 'Поддержка', icon: MessageCircle, path: '/support', color: 'text-slate-400' },
-    { id: 'about', name: 'О нас', icon: Info, path: '/about', color: 'text-slate-400' },
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
-
-  // Нижняя навигация для мобильных (Telegram Mini App стиль)
-  const MobileBottomNav = () => (
+// Mobile Bottom Navigation
+function MobileBottomNav({
+  navigationItems,
+  moreItems,
+  isActive,
+  navigate,
+  isMobileMenuOpen,
+  setIsMobileMenuOpen,
+  isAdmin
+}: MobileBottomNavProps) {
+  return (
     <div className="fixed bottom-0 left-0 right-0 bg-[#1a1a1a] border-t border-[#d4af37]/20 z-50 lg:hidden">
       <div className="flex justify-around items-center h-16 pb-safe">
         {navigationItems.map((item) => {
@@ -125,9 +137,17 @@ export function MainNavigation({ isAdmin }: MainNavigationProps) {
       </div>
     </div>
   );
+}
 
-  // Desktop Navigation
-  const DesktopNav = () => (
+// Desktop Navigation
+function DesktopNav({
+  navigationItems,
+  moreItems,
+  isActive,
+  navigate,
+  isAdmin
+}: DesktopNavProps) {
+  return (
     <div className="hidden lg:block bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border-r border-[#d4af37]/20 w-64 min-h-screen fixed left-0 top-0">
       <div className="p-6">
         {/* Логотип */}
@@ -182,11 +202,50 @@ export function MainNavigation({ isAdmin }: MainNavigationProps) {
       </div>
     </div>
   );
+}
+
+interface MainNavigationProps {
+  isAdmin?: boolean;
+}
+
+export function MainNavigation({ isAdmin = false }: MainNavigationProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const navigationItems: NavigationItem[] = [
+    { id: 'home', name: 'Главная', icon: Home, path: '/', color: 'text-white' },
+    { id: 'catalog', name: 'Каталог', icon: Gamepad2, path: '/catalog', color: 'text-[#d4af37]' },
+    { id: 'cart', name: 'Корзина', icon: ShoppingCart, path: '/cart', color: 'text-[#daa520]' },
+    ...(isAdmin ? [{ id: 'admin', name: 'Админ', icon: Settings, path: '/admin', color: 'text-rose-400' }] : [])
+  ];
+
+  const moreItems: NavigationItem[] = [
+    { id: 'faq', name: 'FAQ', icon: HelpCircle, path: '/faq', color: 'text-[#b8860b]' },
+    { id: 'support', name: 'Поддержка', icon: MessageCircle, path: '/support', color: 'text-slate-400' },
+    { id: 'about', name: 'О нас', icon: Info, path: '/about', color: 'text-slate-400' },
+  ];
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <>
-      <DesktopNav />
-      <MobileBottomNav />
+      <DesktopNav 
+        navigationItems={navigationItems}
+        moreItems={moreItems}
+        isActive={isActive}
+        navigate={navigate}
+        isAdmin={isAdmin}
+      />
+      <MobileBottomNav 
+        navigationItems={navigationItems}
+        moreItems={moreItems}
+        isActive={isActive}
+        navigate={navigate}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        isAdmin={isAdmin}
+      />
       {/* Отступ для мобильной нижней панели */}
       <div className="lg:hidden h-16"></div>
     </>

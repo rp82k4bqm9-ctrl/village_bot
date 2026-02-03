@@ -130,7 +130,7 @@ export function AdminPage() {
       setIsAddDialogOpen(false);
       resetForm();
       toast.success('Игра добавлена!');
-    } catch (err) {
+    } catch {
       toast.error('Ошибка добавления игры');
     }
   };
@@ -156,7 +156,7 @@ export function AdminPage() {
       setEditingGame(null);
       resetForm();
       toast.success('Изменения сохранены!');
-    } catch (err) {
+    } catch {
       toast.error('Ошибка сохранения');
     }
   };
@@ -168,7 +168,7 @@ export function AdminPage() {
       await deleteGame(id);
       setGames(games.filter(g => g.id !== id));
       toast.success('Игра удалена!');
-    } catch (err) {
+    } catch {
       toast.error('Ошибка удаления');
     }
   };

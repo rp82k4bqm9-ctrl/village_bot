@@ -19,6 +19,39 @@ export interface Game {
   created_at?: string;
 }
 
+// Вспомогательная функция для безопасного преобразования массивов из БД
+function parseArrayField(field: unknown): string[] {
+  if (Array.isArray(field)) return field;
+  if (typeof field === 'string') {
+    try {
+      const parsed = JSON.parse(field);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return field ? [field] : [];
+    }
+  }
+  return [];
+}
+
+// Нормализация данных игры из БД
+function normalizeGame(game: unknown): Game {
+  if (!game || typeof game !== 'object') {
+    throw new Error('Invalid game data');
+  }
+  const g = game as Record<string, unknown>;
+  return {
+    id: String(g.id ?? ''),
+    title: String(g.title ?? ''),
+    price: Number(g.price ?? 0),
+    original_price: g.original_price ? Number(g.original_price) : undefined,
+    platform: parseArrayField(g.platform),
+    categories: parseArrayField(g.categories),
+    description: g.description ? String(g.description) : undefined,
+    image: g.image ? String(g.image) : undefined,
+    created_at: g.created_at ? String(g.created_at) : undefined,
+  };
+}
+
 export interface ContentBlock<T = any> {
   key: string;
   title?: string | null;
@@ -35,7 +68,8 @@ export async function getGames(): Promise<Game[]> {
     err.hint = data?.hint;
     throw err;
   }
-  return response.json();
+  const games = await response.json();
+  return Array.isArray(games) ? games.map(normalizeGame) : [];
 }
 
 // Добавить игру (только админ)
@@ -49,7 +83,8 @@ export async function addGame(game: Omit<Game, 'id'>): Promise<Game> {
     body: JSON.stringify(game)
   });
   if (!response.ok) throw new Error('Failed to add game');
-  return response.json();
+  const data = await response.json();
+  return normalizeGame(data);
 }
 
 // Обновить игру (только админ)
@@ -63,7 +98,8 @@ export async function updateGame(id: string, game: Partial<Game>): Promise<Game>
     body: JSON.stringify(game)
   });
   if (!response.ok) throw new Error('Failed to update game');
-  return response.json();
+  const data = await response.json();
+  return normalizeGame(data);
 }
 
 // Удалить игру (только админ)
