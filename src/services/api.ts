@@ -21,7 +21,18 @@ export interface Game {
 
 // Вспомогательная функция для безопасного преобразования массивов из БД
 function parseArrayField(field: unknown): string[] {
+  // Если уже массив - возвращаем как есть
   if (Array.isArray(field)) return field;
+  
+  // Если объект (но не null) - преобразуем в массив значений
+  if (typeof field === 'object' && field !== null) {
+    // Если это пустой объект {} - возвращаем пустой массив
+    if (Object.keys(field).length === 0) return [];
+    // Иначе возвращаем значения объекта
+    return Object.values(field);
+  }
+  
+  // Если строка - парсим JSON
   if (typeof field === 'string') {
     try {
       const parsed = JSON.parse(field);
@@ -30,6 +41,7 @@ function parseArrayField(field: unknown): string[] {
       return field ? [field] : [];
     }
   }
+  
   return [];
 }
 
