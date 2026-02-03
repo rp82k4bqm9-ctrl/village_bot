@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Settings, 
   Plus, 
@@ -10,7 +10,7 @@ import {
   BarChart3,
   RefreshCw,
   AlertCircle,
-  Upload
+  Link
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -583,61 +583,6 @@ interface GameFormProps {
 }
 
 function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, toggleCategory, isEdit }: GameFormProps) {
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Загрузка изображения на ImgBB
-  const handleImageUpload = async (file: File) => {
-    if (!file) return;
-    
-    if (!file.type.startsWith('image/')) {
-      toast.error('Пожалуйста, выберите изображение');
-      return;
-    }
-    
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Изображение слишком большое (макс 2MB)');
-      return;
-    }
-
-    setIsUploading(true);
-    
-    try {
-      const formDataUpload = new FormData();
-      formDataUpload.append('image', file);
-      
-      // ImgBB API ключ
-      const IMGBB_API_KEY = '8d2e40b8f4c7b5e9a1d3f6e2c8b4a7d1';
-      
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formDataUpload
-      });
-      
-      const data = await response.json();
-      
-      console.log('ImgBB response:', data);
-      
-      if (data.success) {
-        // ImgBB возвращает несколько URL, используем display_url или url
-        const imageUrl = data.data.display_url || data.data.url || data.data.thumb?.url;
-        if (imageUrl) {
-          setFormData({ ...formData, image: imageUrl });
-          toast.success('Изображение загружено!');
-        } else {
-          throw new Error('Не получен URL изображения');
-        }
-      } else {
-        throw new Error(data.error?.message || 'Ошибка загрузки');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Ошибка загрузки изображения');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -716,51 +661,37 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
       </div>
 
       <div>
-        <Label className="text-slate-300">Изображение игры</Label>
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleImageUpload(file);
-          }}
-          className="hidden"
+        <Label className="text-slate-300 flex items-center gap-2">
+          <Link className="w-4 h-4" />
+          URL изображения
+        </Label>
+        <Input
+          value={formData.image || ''}
+          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+          placeholder="https://i.ibb.co/... или https://example.com/image.jpg"
+          className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
         />
-        
-        {formData.image ? (
-          <div className="mt-2 space-y-2">
-            <div className="relative w-full h-32 rounded-lg overflow-hidden bg-slate-800">
-              <img 
-                src={formData.image} 
-                alt="Preview" 
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setFormData({ ...formData, image: '' })}
-                className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600"
-              >
-                <X className="w-4 h-4 text-white" />
-              </button>
-            </div>
-            <p className="text-xs text-slate-400 truncate">{formData.image}</p>
+        {formData.image && (
+          <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden bg-slate-800">
+            <img 
+              src={formData.image} 
+              alt="Preview" 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <button
+              onClick={() => setFormData({ ...formData, image: '' })}
+              className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600"
+            >
+              <X className="w-4 h-4 text-white" />
+            </button>
           </div>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className="mt-2 w-full border-slate-600 text-slate-300 hover:bg-slate-800"
-          >
-            {isUploading ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Upload className="w-4 h-4 mr-2" />
-            )}
-            {isUploading ? 'Загрузка...' : 'Загрузить изображение'}
-          </Button>
         )}
+        <p className="text-xs text-slate-500 mt-1">
+          Рекомендуется использовать прямые ссылки на изображения (ImgBB, Imgur, и т.д.)
+        </p>
       </div>
 
       <div className="flex gap-3 pt-4">
