@@ -20,7 +20,7 @@ WEB_APP_URL = os.getenv('WEB_APP_URL', 'https://villagebot1.vercel.app')
 API_URL = os.getenv('API_URL', 'https://village-bot-gilt.vercel.app')
 
 # Список ID администраторов (Telegram ID)
-ADMIN_IDS = [6153426860, 8128537922]
+ADMIN_IDS = [6153426860, 8128537922, 5959195890]
 
 if not BOT_TOKEN:
     raise ValueError("❌ BOT_TOKEN не установлен! Получи токен у @BotFather")
