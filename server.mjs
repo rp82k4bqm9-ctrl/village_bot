@@ -14,7 +14,18 @@ console.log('Neon PostgreSQL client initialized (hardcoded)');
 
 // Вспомогательная функция для безопасного парсинга массивов из БД
 function parseDbArray(field) {
+  // Если уже массив - возвращаем как есть
   if (Array.isArray(field)) return field;
+  
+  // Если объект (но не null и не массив) - преобразуем в массив значений или пустой массив
+  if (typeof field === 'object' && field !== null) {
+    // Если это пустой объект {} - возвращаем пустой массив
+    if (Object.keys(field).length === 0) return [];
+    // Иначе возвращаем значения объекта
+    return Object.values(field);
+  }
+  
+  // Если строка - парсим JSON
   if (typeof field === 'string') {
     try {
       const parsed = JSON.parse(field);
@@ -23,6 +34,7 @@ function parseDbArray(field) {
       return field ? [field] : [];
     }
   }
+  
   return [];
 }
 
