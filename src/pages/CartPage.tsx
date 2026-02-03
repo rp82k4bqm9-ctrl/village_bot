@@ -39,7 +39,10 @@ function getTelegramUser() {
   return null;
 }
 
-// Отправка заказа в Telegram
+// Список ID администраторов для отправки заказов
+const ADMIN_CHAT_IDS = ['6153426860', '8128537922'];
+
+// Отправка заказа в Telegram всем админам
 async function sendOrderToTelegram(orderData: {
   items: CartItem[];
   total: number;
@@ -52,7 +55,6 @@ async function sendOrderToTelegram(orderData: {
   };
 }) {
   const BOT_TOKEN = '8534730006:AAGIMjk0a459q_zMzV3kLMxJyvkwHTlsrcI';
-  const CHAT_ID = '6153426860';
   
   const itemsList = orderData.items.map(item => 
     `• ${item.title} — ${item.price} ₽ x${item.quantity} = ${item.price * item.quantity} ₽`
@@ -79,21 +81,33 @@ ${orderData.customer.comment ? `\n💬 <b>Комментарий:</b> ${orderDat
   `.trim();
   
   try {
-    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: message,
-        parse_mode: 'HTML'
-      })
+    // Отправляем всем админам
+    const sendPromises = ADMIN_CHAT_IDS.map(async (chatId) => {
+      try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'HTML'
+          })
+        });
+        
+        if (!response.ok) {
+          console.error(`Failed to send to ${chatId}:`, await response.text());
+          return false;
+        }
+        return true;
+      } catch (err) {
+        console.error(`Error sending to ${chatId}:`, err);
+        return false;
+      }
     });
     
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
-    
-    return true;
+    const results = await Promise.all(sendPromises);
+    // Считаем успешным если хотя бы одно сообщение доставлено
+    return results.some(r => r);
   } catch (error) {
     console.error('Error sending to Telegram:', error);
     return false;

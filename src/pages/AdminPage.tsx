@@ -663,12 +663,13 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
       <div>
         <Label className="text-slate-300 flex items-center gap-2">
           <Link className="w-4 h-4" />
-          URL изображения
+          Изображение игры
         </Label>
+        <p className="text-xs text-slate-500 mb-1">Вставьте ссылку URL на изображение</p>
         <Input
           value={formData.image || ''}
           onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-          placeholder="https://i.ibb.co/... или https://example.com/image.jpg"
+          placeholder="https://..."
           className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
         />
         {formData.image && (
