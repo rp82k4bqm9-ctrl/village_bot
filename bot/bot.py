@@ -25,9 +25,14 @@ ADMIN_IDS = [6153426860, 8128537922]
 if not BOT_TOKEN:
     raise ValueError("❌ BOT_TOKEN не установлен! Получи токен у @BotFather")
 
-def is_admin(user_id: int) -> bool:
+def is_admin(user_id) -> bool:
     """Проверяет, является ли пользователь админом"""
-    return user_id in ADMIN_IDS
+    # Приводим к int для надёжности
+    try:
+        user_id_int = int(user_id)
+        return user_id_int in ADMIN_IDS
+    except (ValueError, TypeError):
+        return False
 
 # ========== Command handlers ==========
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -97,6 +102,23 @@ async def admin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=reply_markup,
         parse_mode='HTML'
     )
+
+async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Показать свой Telegram ID"""
+    user = update.effective_user
+    
+    is_user_admin = is_admin(user.id)
+    
+    text = f"""
+🆔 <b>Твой Telegram ID:</b> <code>{user.id}</code>
+
+👤 Имя: {user.first_name}
+{'👑 Статус: Администратор' if is_user_admin else '👤 Статус: Пользователь'}
+
+{'✅ У тебя есть доступ к админ-панели!' if is_user_admin else '❌ У тебя нет доступа к админ-панели.\nОтправь этот ID владельцу для получения доступа.'}
+    """.strip()
+    
+    await update.message.reply_text(text, parse_mode='HTML')
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Показать помощь"""
@@ -184,6 +206,7 @@ def main():
     # Регистрируем обработчики команд
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("admin", admin_command))
+    application.add_handler(CommandHandler("id", id_command))
     application.add_handler(CommandHandler("help", help_command))
     
     # Регистрируем обработчики callback-кнопок
