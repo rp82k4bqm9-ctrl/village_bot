@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
 import { getGames, type Game } from '@/services/api';
+import { GamePlaceholder } from '@/components/GamePlaceholder';
 
 interface CatalogPageProps {
   isAdmin?: boolean;
@@ -224,34 +225,27 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                 className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#d4af37]/20 active:scale-95 transition-all duration-200 overflow-hidden"
               >
                 {/* Изображение */}
-                <div className="aspect-video bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden" id={`game-image-${game.id}`}>
+                <div className="aspect-video relative overflow-hidden">
                   {game.image ? (
                     <img 
                       src={game.image} 
                       alt={game.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        // Если изображение не загрузилось, показываем заглушку
-                        const img = e.target as HTMLImageElement;
-                        img.style.display = 'none';
-                        // Показываем заглушку
+                        // Если изображение не загрузилось, скрываем его и показываем заглушку
+                        (e.target as HTMLImageElement).style.display = 'none';
                         const fallback = document.getElementById(`fallback-${game.id}`);
-                        if (fallback) fallback.style.display = 'flex';
-                      }}
-                      onLoad={() => {
-                        // При успешной загрузке скрываем заглушку
-                        const fallback = document.getElementById(`fallback-${game.id}`);
-                        if (fallback) fallback.style.display = 'none';
+                        if (fallback) fallback.style.display = 'block';
                       }}
                     />
                   ) : null}
                   {/* Заглушка - показывается если нет image или произошла ошибка */}
                   <div 
+                    className="absolute inset-0"
+                    style={{ display: game.image ? 'none' : 'block' }}
                     id={`fallback-${game.id}`}
-                    className="items-center justify-center w-full h-full absolute inset-0"
-                    style={{ display: game.image ? 'none' : 'flex' }}
                   >
-                    <Gamepad2 className="w-12 h-12 text-slate-600" />
+                    <GamePlaceholder />
                   </div>
                   
                   {/* Бейджи */}
