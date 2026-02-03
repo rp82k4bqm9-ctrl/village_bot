@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
+import { BOT_CONFIG } from '@/config/bot';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   game: Gamepad2,
@@ -39,9 +40,8 @@ function getTelegramUser() {
   return null;
 }
 
-// Список ID администраторов для отправки заказов
-// Чтобы добавить нового админа, попросите его написать боту /id и добавьте ID сюда
-const ADMIN_CHAT_IDS = ['6153426860', '8128537922'];
+// Используем конфиг из bot.ts
+const { TOKEN: BOT_TOKEN, ADMIN_CHAT_IDS } = BOT_CONFIG;
 
 // Отправка заказа в Telegram всем админам
 async function sendOrderToTelegram(orderData: {
@@ -55,8 +55,6 @@ async function sendOrderToTelegram(orderData: {
     comment?: string;
   };
 }) {
-  const BOT_TOKEN = '8534730006:AAGIMjk0a459q_zMzV3kLMxJyvkwHTlsrcI';
-  
   const itemsList = orderData.items.map(item => 
     `• ${item.title} — ${item.price} ₽ x${item.quantity} = ${item.price * item.quantity} ₽`
   ).join('\n');

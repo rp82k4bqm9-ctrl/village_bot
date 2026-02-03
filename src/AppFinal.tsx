@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './contexts/CartContext';
 import { Toaster } from '@/components/ui/sonner';
+import { BOT_CONFIG } from '@/config/bot';
 import './App.css';
 
 // Главная навигация
@@ -29,7 +30,9 @@ function checkAdminAccess(): boolean {
     
     if (window.Telegram?.WebApp?.initDataUnsafe?.user) {
       const userId = window.Telegram.WebApp.initDataUnsafe.user.id;
-      return [6153426860, 123456].includes(userId);
+      // Используем ID админов из конфига
+      const adminIds = BOT_CONFIG.ADMIN_CHAT_IDS.map(id => parseInt(id, 10));
+      return adminIds.includes(userId);
     }
     
     return false;
