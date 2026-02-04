@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Settings, 
   Plus, 
@@ -10,7 +10,8 @@ import {
   BarChart3,
   RefreshCw,
   AlertCircle,
-  Link
+  Upload,
+  ImageIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -584,6 +585,47 @@ interface GameFormProps {
 }
 
 function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, toggleCategory, isEdit }: GameFormProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Конвертация файла в base64
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Проверка типа файла
+    if (!file.type.startsWith('image/')) {
+      toast.error('Пожалуйста, выберите изображение');
+      return;
+    }
+
+    // Проверка размера (макс 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Изображение слишком большое (макс 5MB)');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setFormData({ ...formData, image: base64 });
+        setUploading(false);
+        toast.success('Изображение загружено!');
+      };
+      reader.onerror = () => {
+        toast.error('Ошибка чтения файла');
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      toast.error('Ошибка загрузки изображения');
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -666,43 +708,54 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
 
       <div>
         <Label className="text-slate-300 flex items-center gap-2">
-          <Link className="w-4 h-4" />
+          <ImageIcon className="w-4 h-4" />
           Изображение игры
         </Label>
-        <p className="text-xs text-slate-500 mb-1">Вставьте ссылку URL на изображение</p>
-        <Input
-          value={formData.image || ''}
-          onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-          placeholder="https://..."
-          className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
+        
+        {/* Скрытый input для выбора файла */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
         />
-        {formData.image && (
-          <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden">
-            {/* Превью изображения */}
-            <img 
-              src={formData.image} 
-              alt="Preview" 
-              className="w-full h-full object-cover relative z-10"
-              onError={(e) => {
-                // При ошибке скрываем картинку и показываем заглушку
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-              onLoad={(e) => {
-                // При успешной загрузке показываем картинку
-                (e.target as HTMLImageElement).style.display = 'block';
-              }}
-            />
-            {/* Кнопка удаления */}
-            <button
-              onClick={() => setFormData({ ...formData, image: '' })}
-              className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 z-20"
-            >
-              <X className="w-4 h-4 text-white" />
-            </button>
+        
+        {formData.image ? (
+          <div className="mt-2 space-y-2">
+            <div className="relative w-full h-32 rounded-lg overflow-hidden bg-slate-800">
+              <img 
+                src={formData.image} 
+                alt="Preview" 
+                className="w-full h-full object-cover"
+              />
+              <button
+                onClick={() => setFormData({ ...formData, image: '' })}
+                className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">Изображение загружено</p>
           </div>
+        ) : (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="mt-2 w-full border-slate-600 text-slate-300 hover:bg-slate-800"
+          >
+            {uploading ? (
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Upload className="w-4 h-4 mr-2" />
+            )}
+            {uploading ? 'Загрузка...' : 'Выбрать изображение'}
+          </Button>
         )}
         <p className="text-xs text-slate-500 mt-1">
-          Рекомендуется использовать прямые ссылки на изображения (ImgBB, Imgur, и т.д.)
+          Нажмите чтобы выбрать фото из галереи (макс 5MB)
         </p>
       </div>
 
