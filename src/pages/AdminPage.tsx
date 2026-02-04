@@ -588,7 +588,7 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  // Конвертация и сжатие файла
+  // Загрузка файла на ImgBB
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -608,56 +608,33 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
     setUploading(true);
 
     try {
-      // Сжимаем изображение перед загрузкой
-      const compressed = await compressImage(file, 800, 600, 0.7);
-      setFormData({ ...formData, image: compressed });
-      setUploading(false);
-      toast.success('Изображение загружено!');
+      // Загружаем на ImgBB
+      const formDataImg = new FormData();
+      formDataImg.append('image', file);
+      
+      const IMGBB_API_KEY = '8d2e40b8f4c7b5e9a1d3f6e2c8b4a7d1';
+      
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formDataImg
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Используем прямую ссылку на изображение
+        const imageUrl = data.data.display_url || data.data.url;
+        setFormData({ ...formData, image: imageUrl });
+        toast.success('Изображение загружено!');
+      } else {
+        throw new Error(data.error?.message || 'Ошибка загрузки');
+      }
     } catch (error) {
-      toast.error('Ошибка загрузки изображения');
+      console.error('Upload error:', error);
+      toast.error('Ошибка загрузки изображения. Попробуйте другое фото.');
+    } finally {
       setUploading(false);
     }
-  };
-
-  // Функция сжатия изображения
-  const compressImage = (file: File, maxWidth: number, maxHeight: number, quality: number): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-
-          // Масштабирование
-          if (width > height) {
-            if (width > maxWidth) {
-              height *= maxWidth / width;
-              width = maxWidth;
-            }
-          } else {
-            if (height > maxHeight) {
-              width *= maxHeight / height;
-              height = maxHeight;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          // Конвертация в base64 с сжатием
-          const compressed = canvas.toDataURL('image/jpeg', quality);
-          resolve(compressed);
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
   };
 
   return (
