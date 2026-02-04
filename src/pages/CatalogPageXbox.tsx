@@ -230,15 +230,12 @@ export function CatalogPageXbox({ isAdmin }: CatalogPageXboxProps) {
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
-                        const fallback = document.getElementById(`fallback-xbox-${game.id}`);
-                        if (fallback) fallback.style.display = 'block';
                       }}
                     />
                   ) : null}
                   <div 
                     className="absolute inset-0"
                     style={{ display: game.image ? 'none' : 'block' }}
-                    id={`fallback-xbox-${game.id}`}
                   >
                     <GamePlaceholder />
                   </div>
