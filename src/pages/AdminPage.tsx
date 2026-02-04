@@ -677,18 +677,25 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
           className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
         />
         {formData.image && (
-          <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden bg-slate-800">
+          <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden">
+            {/* Превью изображения */}
             <img 
               src={formData.image} 
               alt="Preview" 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover relative z-10"
               onError={(e) => {
+                // При ошибке скрываем картинку и показываем заглушку
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
+              onLoad={(e) => {
+                // При успешной загрузке показываем картинку
+                (e.target as HTMLImageElement).style.display = 'block';
+              }}
             />
+            {/* Кнопка удаления */}
             <button
               onClick={() => setFormData({ ...formData, image: '' })}
-              className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600"
+              className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 z-20"
             >
               <X className="w-4 h-4 text-white" />
             </button>
