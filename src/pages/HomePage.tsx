@@ -23,14 +23,24 @@ export function HomePage({ isAdmin }: HomePageProps) {
 
   const mainSections = [
     {
-      id: 'catalog',
-      name: 'Каталог игр',
+      id: 'catalog-ps',
+      name: 'Каталог игр PlayStation',
       description: 'PS4, PS5 игры по лучшим ценам',
       icon: Gamepad2,
-      path: '/catalog',
-      color: 'from-[#d4af37] to-[#cd7f32]',
-      badge: 'Новое',
-      features: ['Фото игр', 'Фильтры', 'Поиск', 'Корзина']
+      path: '/catalog?platform=PS',
+      color: 'from-blue-500 to-blue-600',
+      badge: 'PS',
+      features: ['PS5', 'PS4', 'Эксклюзивы', 'Подписки']
+    },
+    {
+      id: 'catalog-xbox',
+      name: 'Каталог игр Xbox',
+      description: 'Xbox Series X/S, Xbox One игры',
+      icon: Gamepad2,
+      path: '/catalog?platform=Xbox',
+      color: 'from-green-500 to-green-600',
+      badge: 'Xbox',
+      features: ['Series X/S', 'Xbox One', 'Game Pass', 'Подписки']
     },
     {
       id: 'cart',

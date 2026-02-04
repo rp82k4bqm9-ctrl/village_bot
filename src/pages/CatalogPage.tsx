@@ -32,6 +32,7 @@ const PLATFORM_FILTERS = [
   { id: 'popular', label: 'Популярные', icon: Star, color: 'text-yellow-400' },
   { id: 'exclusive', label: 'Эксклюзивы', icon: Flame, color: 'text-purple-400' },
   { id: 'sale', label: 'Распродажа', icon: Percent, color: 'text-red-400' },
+  { id: 'subscription', label: 'Подписки', icon: Percent, color: 'text-cyan-400' },
 ];
 
 export function CatalogPage({ isAdmin }: CatalogPageProps) {
@@ -260,6 +261,9 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                     )}
                     {game.categories.includes('popular') && (
                       <Badge className="bg-[#d4af37] text-black text-xs">★ Популярное</Badge>
+                    )}
+                    {game.categories.includes('subscription') && (
+                      <Badge className="bg-cyan-500 text-white text-xs">🎫 Подписка</Badge>
                     )}
                   </div>
                 </div>

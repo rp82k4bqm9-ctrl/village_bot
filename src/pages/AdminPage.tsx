@@ -388,9 +388,10 @@ export function AdminPage() {
                               c === 'sale' ? 'bg-red-500' :
                               c === 'exclusive' ? 'bg-purple-500' :
                               c === 'popular' ? 'bg-[#d4af37] text-black' :
+                              c === 'subscription' ? 'bg-cyan-500' :
                               'bg-slate-600'
                             }`}>
-                              {c === 'sale' ? 'Sale' : c === 'exclusive' ? 'Эксклюзив' : c === 'popular' ? '★' : c}
+                              {c === 'sale' ? 'Sale' : c === 'exclusive' ? 'Эксклюзив' : c === 'popular' ? '★' : c === 'subscription' ? 'Подписка' : c}
                             </Badge>
                           ))}
                         </div>
@@ -636,15 +637,18 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
       <div>
         <Label className="text-slate-300 mb-2 block">Категории</Label>
         <div className="flex flex-wrap gap-4">
-          {['popular', 'exclusive', 'sale'].map((cat) => (
-            <label key={cat} className="flex items-center gap-2 cursor-pointer">
+          {[
+            { id: 'popular', label: 'Популярное' },
+            { id: 'exclusive', label: 'Эксклюзив' },
+            { id: 'sale', label: 'Распродажа' },
+            { id: 'subscription', label: 'Подписки' },
+          ].map((cat) => (
+            <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
               <Checkbox 
-                checked={(formData.categories || []).includes(cat)}
-                onCheckedChange={() => toggleCategory(cat)}
+                checked={(formData.categories || []).includes(cat.id)}
+                onCheckedChange={() => toggleCategory(cat.id)}
               />
-              <span className="text-slate-300">
-                {cat === 'popular' ? 'Популярное' : cat === 'exclusive' ? 'Эксклюзив' : 'Распродажа'}
-              </span>
+              <span className="text-slate-300">{cat.label}</span>
             </label>
           ))}
         </div>
