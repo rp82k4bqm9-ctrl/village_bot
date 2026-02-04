@@ -9,6 +9,8 @@ import './App.css';
 import { MainNavigation } from './components/MainNavigation';
 import { HomePage } from './pages/HomePage';
 import { CatalogPage } from './pages/CatalogPage';
+import { CatalogPagePS } from './pages/CatalogPagePS';
+import { CatalogPageXbox } from './pages/CatalogPageXbox';
 import { FAQPage } from './pages/FAQPage';
 import { SupportPage } from './pages/SupportPage';
 import { AboutPage } from './pages/AboutPage';
@@ -78,6 +80,8 @@ function AppFinal() {
                 <Routes>
                   <Route path="/" element={<HomePage isAdmin={isAdmin} />} />
                   <Route path="/catalog" element={<CatalogPage isAdmin={isAdmin} />} />
+                  <Route path="/catalog/ps" element={<CatalogPagePS isAdmin={isAdmin} />} />
+                  <Route path="/catalog/xbox" element={<CatalogPageXbox isAdmin={isAdmin} />} />
                   <Route path="/faq" element={<FAQPage />} />
                   <Route path="/support" element={<SupportPage />} />
                   <Route path="/about" element={<AboutPage />} />

@@ -27,7 +27,7 @@ export function HomePage({ isAdmin }: HomePageProps) {
       name: 'Каталог игр PlayStation',
       description: 'PS4, PS5 игры по лучшим ценам',
       icon: Gamepad2,
-      path: '/catalog?platform=PS',
+      path: '/catalog/ps',
       color: 'from-blue-500 to-blue-600',
       badge: 'PS',
       features: ['PS5', 'PS4', 'Эксклюзивы', 'Подписки']
@@ -37,7 +37,7 @@ export function HomePage({ isAdmin }: HomePageProps) {
       name: 'Каталог игр Xbox',
       description: 'Xbox Series X/S, Xbox One игры',
       icon: Gamepad2,
-      path: '/catalog?platform=Xbox',
+      path: '/catalog/xbox',
       color: 'from-green-500 to-green-600',
       badge: 'Xbox',
       features: ['Series X/S', 'Xbox One', 'Game Pass', 'Подписки']
