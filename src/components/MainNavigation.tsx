@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, 
-  Gamepad2, 
   ShoppingCart, 
   MessageCircle, 
   HelpCircle, 
@@ -215,7 +214,6 @@ export function MainNavigation({ isAdmin = false }: MainNavigationProps) {
 
   const navigationItems: NavigationItem[] = [
     { id: 'home', name: 'Главная', icon: Home, path: '/', color: 'text-white' },
-    { id: 'catalog', name: 'Каталог', icon: Gamepad2, path: '/catalog', color: 'text-[#d4af37]' },
     { id: 'cart', name: 'Корзина', icon: ShoppingCart, path: '/cart', color: 'text-[#daa520]' },
     ...(isAdmin ? [{ id: 'admin', name: 'Админ', icon: Settings, path: '/admin', color: 'text-rose-400' }] : [])
   ];
