@@ -220,7 +220,7 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
                 key={game.id}
                 className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#d4af37]/20 active:scale-95 transition-all duration-200 overflow-hidden"
               >
-                <CardHeader className="pb-2 pt-4">
+                <CardHeader className="pb-1 pt-2">
                   {/* Бейджи категорий */}
                   <div className="flex flex-wrap gap-1 mb-2">
                     {game.categories.includes('sale') && game.original_price && (
@@ -251,8 +251,8 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
                   )}
                 </CardHeader>
 
-                <CardContent className="pt-0">
-                  <div className="flex items-center justify-between mb-3">
+                <CardContent className="pt-0 pb-3">
+                  <div className="flex items-center justify-between mb-2">
                     <div>
                       {game.original_price && (
                         <span className="text-slate-500 line-through text-sm mr-2">
