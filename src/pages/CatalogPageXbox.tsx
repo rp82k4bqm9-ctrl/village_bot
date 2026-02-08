@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
 import { getGames, type Game } from '@/services/api';
-import { GamePlaceholder } from '@/components/GamePlaceholder';
+
 
 interface CatalogPageXboxProps {
   isAdmin?: boolean;
@@ -221,27 +221,9 @@ export function CatalogPageXbox({ isAdmin }: CatalogPageXboxProps) {
                 key={game.id}
                 className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#d4af37]/20 active:scale-95 transition-all duration-200 overflow-hidden"
               >
-                {/* Изображение */}
-                <div className="aspect-video relative overflow-hidden">
-                  {game.image ? (
-                    <img 
-                      src={game.image} 
-                      alt={game.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
-                  ) : null}
-                  <div 
-                    className="absolute inset-0"
-                    style={{ display: game.image ? 'none' : 'block' }}
-                  >
-                    <GamePlaceholder />
-                  </div>
-                  
-                  {/* Бейджи */}
-                  <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                <CardHeader className="pb-2 pt-4">
+                  {/* Бейджи категорий */}
+                  <div className="flex flex-wrap gap-1 mb-2">
                     {game.categories.includes('sale') && game.original_price && (
                       <Badge className="bg-red-500 text-white text-xs">
                         -{Math.round((1 - game.price / game.original_price) * 100)}%
@@ -257,9 +239,6 @@ export function CatalogPageXbox({ isAdmin }: CatalogPageXboxProps) {
                       <Badge className="bg-cyan-500 text-white text-xs">🎫 Подписка</Badge>
                     )}
                   </div>
-                </div>
-
-                <CardHeader className="pb-2">
                   <div className="flex flex-wrap gap-1 mb-2">
                     {game.platform.map((p) => (
                       <Badge key={p} variant="outline" className={`text-xs ${getPlatformColor(p)}`}>

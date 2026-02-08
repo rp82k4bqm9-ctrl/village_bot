@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Settings, 
   Plus, 
@@ -9,9 +9,7 @@ import {
   X,
   BarChart3,
   RefreshCw,
-  AlertCircle,
-  Upload,
-  ImageIcon
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -47,7 +45,7 @@ export function AdminPage() {
     platform: [],
     categories: [],
     description: '',
-    image: ''
+
   });
 
   // Управление текстами (FAQ и др.)
@@ -124,8 +122,7 @@ export function AdminPage() {
         original_price: formData.original_price ? Number(formData.original_price) : undefined,
         platform: formData.platform || [],
         categories: formData.categories || [],
-        description: formData.description || '',
-        image: formData.image || ''
+        description: formData.description || ''
       });
       
       setGames([newGame, ...games]);
@@ -151,8 +148,7 @@ export function AdminPage() {
         original_price: formData.original_price ? Number(formData.original_price) : undefined,
         platform: formData.platform || [],
         categories: formData.categories || [],
-        description: formData.description || '',
-        image: formData.image || ''
+        description: formData.description || ''
       });
       
       setGames(games.map(g => g.id === editingGame.id ? updated : g));
@@ -184,7 +180,7 @@ export function AdminPage() {
       platform: [],
       categories: [],
       description: '',
-      image: ''
+  
     });
   };
 
@@ -585,58 +581,6 @@ interface GameFormProps {
 }
 
 function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, toggleCategory, isEdit }: GameFormProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  // Загрузка файла на ImgBB
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Проверка типа файла
-    if (!file.type.startsWith('image/')) {
-      toast.error('Пожалуйста, выберите изображение');
-      return;
-    }
-
-    // Проверка размера (макс 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Изображение слишком большое (макс 5MB)');
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      // Загружаем на ImgBB
-      const formDataImg = new FormData();
-      formDataImg.append('image', file);
-      
-      const IMGBB_API_KEY = '8d2e40b8f4c7b5e9a1d3f6e2c8b4a7d1';
-      
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formDataImg
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        // Используем прямую ссылку на изображение
-        const imageUrl = data.data.display_url || data.data.url;
-        setFormData({ ...formData, image: imageUrl });
-        toast.success('Изображение загружено!');
-      } else {
-        throw new Error(data.error?.message || 'Ошибка загрузки');
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error('Ошибка загрузки изображения. Попробуйте другое фото.');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div>
@@ -717,58 +661,7 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
         />
       </div>
 
-      <div>
-        <Label className="text-slate-300 flex items-center gap-2">
-          <ImageIcon className="w-4 h-4" />
-          Изображение игры
-        </Label>
-        
-        {/* Скрытый input для выбора файла */}
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-        
-        {formData.image ? (
-          <div className="mt-2 space-y-2">
-            <div className="relative w-full h-32 rounded-lg overflow-hidden bg-slate-800">
-              <img 
-                src={formData.image} 
-                alt="Preview" 
-                className="w-full h-full object-cover"
-              />
-              <button
-                onClick={() => setFormData({ ...formData, image: '' })}
-                className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600"
-              >
-                <X className="w-4 h-4 text-white" />
-              </button>
-            </div>
-            <p className="text-xs text-slate-400">Изображение загружено</p>
-          </div>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="mt-2 w-full border-slate-600 text-slate-300 hover:bg-slate-800"
-          >
-            {uploading ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Upload className="w-4 h-4 mr-2" />
-            )}
-            {uploading ? 'Загрузка...' : 'Выбрать изображение'}
-          </Button>
-        )}
-        <p className="text-xs text-slate-500 mt-1">
-          Нажмите чтобы выбрать фото из галереи (макс 5MB)
-        </p>
-      </div>
+
 
       <div className="flex gap-3 pt-4">
         <Button 
