@@ -69,7 +69,9 @@ app.use(express.json());
 app.get('/api/games', async (req, res) => {
   try {
     const rows = await sql`SELECT * FROM games ORDER BY created_at DESC`;
+    console.log('GET /api/games - raw rows:', rows.map(r => ({ id: r.id, title: r.title, price_turkey: r.price_turkey, price_ukraine: r.price_ukraine })));
     const normalized = rows.map(normalizeGameRow);
+    console.log('GET /api/games - normalized:', normalized.map(g => ({ id: g.id, price_turkey: g.price_turkey, price_ukraine: g.price_ukraine })));
     res.status(200).json(normalized);
   } catch (error) {
     console.error('GET /api/games error:', error);
@@ -85,6 +87,8 @@ app.post('/api/games', async (req, res) => {
     }
 
     const { title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image } = req.body;
+    
+    console.log('POST /api/games - received data:', { title, price, original_price, price_turkey, price_ukraine });
 
     // Преобразуем массивы в JSON для полей jsonb
     const platformJson = JSON.stringify(platform || []);
@@ -95,6 +99,8 @@ app.post('/api/games', async (req, res) => {
       VALUES (${title}, ${price}, ${original_price || null}, ${price_turkey || null}, ${price_ukraine || null}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
       RETURNING *
     `;
+    
+    console.log('POST /api/games - saved data:', row);
 
     res.status(201).json(normalizeGameRow(row));
   } catch (error) {
