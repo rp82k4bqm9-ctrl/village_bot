@@ -44,6 +44,8 @@ function normalizeGameRow(row) {
     title: row.title,
     price: row.price,
     original_price: row.original_price,
+    price_turkey: row.price_turkey,
+    price_ukraine: row.price_ukraine,
     platform: parseDbArray(row.platform),
     categories: parseDbArray(row.categories),
     description: row.description ?? '',
@@ -82,15 +84,15 @@ app.post('/api/games', async (req, res) => {
       return res.status(403).json({ error: 'Доступ запрещен' });
     }
 
-    const { title, price, original_price, platform, categories, description, image } = req.body;
+    const { title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image } = req.body;
 
     // Преобразуем массивы в JSON для полей jsonb
     const platformJson = JSON.stringify(platform || []);
     const categoriesJson = JSON.stringify(categories || []);
 
     const [row] = await sql`
-      INSERT INTO games (title, price, original_price, platform, categories, description, image)
-      VALUES (${title}, ${price}, ${original_price || null}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
+      INSERT INTO games (title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image)
+      VALUES (${title}, ${price}, ${original_price || null}, ${price_turkey || null}, ${price_ukraine || null}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
       RETURNING *
     `;
 
@@ -109,7 +111,7 @@ app.put('/api/games/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { title, price, original_price, platform, categories, description, image } = req.body;
+    const { title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image } = req.body;
 
     // Преобразуем массивы в JSON для полей jsonb
     const platformJson = JSON.stringify(platform || []);
@@ -120,6 +122,8 @@ app.put('/api/games/:id', async (req, res) => {
       SET title = ${title},
           price = ${price},
           original_price = ${original_price || null},
+          price_turkey = ${price_turkey || null},
+          price_ukraine = ${price_ukraine || null},
           description = ${description || ''},
           image = ${image || ''},
           platform = ${platformJson}::jsonb,

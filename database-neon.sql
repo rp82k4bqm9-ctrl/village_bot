@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS games (
   title VARCHAR(255) NOT NULL,
   price INTEGER NOT NULL DEFAULT 0,
   original_price INTEGER NULL,
+  price_turkey INTEGER NULL,
+  price_ukraine INTEGER NULL,
   platform JSONB NOT NULL DEFAULT '[]',
   categories JSONB NOT NULL DEFAULT '[]',
   description TEXT NOT NULL DEFAULT '',
