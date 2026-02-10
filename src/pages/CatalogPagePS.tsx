@@ -55,6 +55,12 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
       setIsLoading(true);
       setError(null);
       const data = await getGames();
+      console.log('Loaded games:', data);
+      console.log('First game prices:', data[0] ? { 
+        price: data[0].price, 
+        price_turkey: data[0].price_turkey, 
+        price_ukraine: data[0].price_ukraine 
+      } : 'no games');
       // Фильтруем только PlayStation игры
       const psGames = data.filter(game => 
         game.platform.some(p => p.includes('PS'))
