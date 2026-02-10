@@ -35,7 +35,7 @@ const POPULAR_GAMES = [
 export function SteamPage() {
   const [customAmount, setCustomAmount] = useState('');
   const [steamLogin, setSteamLogin] = useState('');
-  const { addItem } = useCart() as { addItem: (item: { id: string; title: string; price: number; type: string }) => void };
+  const { addItem } = useCart();
 
   const handleTopup = (amount: number) => {
     if (!steamLogin.trim()) {
@@ -46,6 +46,7 @@ export function SteamPage() {
       id: `steam-topup-${amount}`,
       title: `Пополнение Steam ${amount} ₽ (${steamLogin})`,
       price: amount,
+      selectedRegion: 'standard',
       type: 'steam',
     });
     toast.success(`Пополнение Steam на ${amount} ₽ добавлено в корзину!`);
@@ -74,6 +75,7 @@ export function SteamPage() {
       id: game.id,
       title: game.title,
       price: game.price,
+      selectedRegion: 'standard',
       type: 'steam-game',
     });
     toast.success(`${game.title} добавлена в корзину!`);

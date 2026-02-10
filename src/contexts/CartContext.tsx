@@ -1,10 +1,15 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 import { toast } from 'sonner';
 
+export type Region = 'standard' | 'turkey' | 'ukraine';
+
 export interface CartItem {
   id: string;
   title: string;
   price: number;
+  price_turkey?: number;
+  price_ukraine?: number;
+  selectedRegion: Region;
   type: 'game' | 'steam' | 'steam-game' | string;
   image?: string;
   quantity: number;
@@ -19,8 +24,21 @@ type CartAction =
   | { type: 'ADD_ITEM'; payload: CartItem }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantity: number } }
+  | { type: 'UPDATE_REGION'; payload: { id: string; region: Region } }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartItem[] };
+
+// Функция для получения цены по выбранному региону
+function getPriceByRegion(item: CartItem): number {
+  switch (item.selectedRegion) {
+    case 'turkey':
+      return item.price_turkey ?? item.price;
+    case 'ukraine':
+      return item.price_ukraine ?? item.price;
+    default:
+      return item.price;
+  }
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const CartContext = createContext<{
@@ -29,18 +47,21 @@ export const CartContext = createContext<{
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  updateRegion: (id: string, region: Region) => void;
   clearCart: () => void;
 } | undefined>(undefined);
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
+      const existingItem = state.items.find(item => 
+        item.id === action.payload.id && item.selectedRegion === action.payload.selectedRegion
+      );
       let newItems;
       
       if (existingItem) {
         newItems = state.items.map(item =>
-          item.id === action.payload.id
+          item.id === action.payload.id && item.selectedRegion === action.payload.selectedRegion
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -48,7 +69,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         newItems = [...state.items, action.payload];
       }
       
-      const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const newTotal = newItems.reduce((sum, item) => sum + (getPriceByRegion(item) * item.quantity), 0);
       
       return {
         ...state,
@@ -59,7 +80,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
     
     case 'REMOVE_ITEM': {
       const newItems = state.items.filter(item => item.id !== action.payload);
-      const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const newTotal = newItems.reduce((sum, item) => sum + (getPriceByRegion(item) * item.quantity), 0);
       
       return {
         ...state,
@@ -79,7 +100,23 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           : item
       );
       
-      const newTotal = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const newTotal = newItems.reduce((sum, item) => sum + (getPriceByRegion(item) * item.quantity), 0);
+      
+      return {
+        ...state,
+        items: newItems,
+        total: newTotal,
+      };
+    }
+    
+    case 'UPDATE_REGION': {
+      const newItems = state.items.map(item =>
+        item.id === action.payload.id
+          ? { ...item, selectedRegion: action.payload.region }
+          : item
+      );
+      
+      const newTotal = newItems.reduce((sum, item) => sum + (getPriceByRegion(item) * item.quantity), 0);
       
       return {
         ...state,
@@ -95,7 +132,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     
     case 'LOAD_CART': {
-      const newTotal = action.payload.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      const newTotal = action.payload.reduce((sum, item) => sum + (getPriceByRegion(item) * item.quantity), 0);
       
       return {
         items: action.payload,
@@ -148,6 +185,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
   };
 
+  const updateRegion = (id: string, region: Region) => {
+    dispatch({ type: 'UPDATE_REGION', payload: { id, region } });
+    toast.success(`Регион изменён`);
+  };
+
   const clearCart = () => {
     dispatch({ type: 'CLEAR_CART' });
     toast.info('Корзина очищена');
@@ -159,6 +201,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     addItem,
     removeItem,
     updateQuantity,
+    updateRegion,
     clearCart,
   };
 

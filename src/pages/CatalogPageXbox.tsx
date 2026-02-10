@@ -93,15 +93,19 @@ export function CatalogPageXbox({ isAdmin }: CatalogPageXboxProps) {
     setFilteredGames(filtered);
   }, [games, searchQuery, activeFilter]);
 
-  const handleAddToCart = (game: Game) => {
+  const handleAddToCart = (game: Game, region: 'standard' | 'turkey' | 'ukraine' = 'standard') => {
     addItem({
       id: game.id,
       title: game.title,
       price: game.price,
+      price_turkey: game.price_turkey,
+      price_ukraine: game.price_ukraine,
+      selectedRegion: region,
       type: 'xbox-game',
       image: game.image
     });
-    toast.success(`${game.title} добавлена в корзину!`);
+    const regionName = region === 'turkey' ? ' (Турция)' : region === 'ukraine' ? ' (Украина)' : '';
+    toast.success(`${game.title}${regionName} добавлена в корзину!`);
   };
 
   const getPlatformColor = (platform: string) => {

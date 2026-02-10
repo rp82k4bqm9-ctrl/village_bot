@@ -15,6 +15,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
 import { getGames, type Game } from '@/services/api';
@@ -92,15 +98,19 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
     setFilteredGames(filtered);
   }, [games, searchQuery, activeFilter]);
 
-  const handleAddToCart = (game: Game) => {
+  const handleAddToCart = (game: Game, region: 'standard' | 'turkey' | 'ukraine' = 'standard') => {
     addItem({
       id: game.id,
       title: game.title,
       price: game.price,
+      price_turkey: game.price_turkey,
+      price_ukraine: game.price_ukraine,
+      selectedRegion: region,
       type: 'ps-game',
       image: game.image
     });
-    toast.success(`${game.title} добавлена в корзину!`);
+    const regionName = region === 'turkey' ? ' (Турция)' : region === 'ukraine' ? ' (Украина)' : '';
+    toast.success(`${game.title}${regionName} добавлена в корзину!`);
   };
 
   const getPlatformColor = (platform: string) => {
@@ -286,13 +296,40 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
                       </div>
                     )}
                   </div>
-                  <Button 
-                    className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold text-sm"
-                    onClick={() => handleAddToCart(game)}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    В корзину
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold text-sm"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        В корзину
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-[#1a1a1a] border-[#d4af37]/30">
+                      <DropdownMenuItem 
+                        onClick={() => handleAddToCart(game, 'standard')}
+                        className="text-white hover:bg-[#d4af37]/20 cursor-pointer"
+                      >
+                        Стандарт — {game.price} ₽
+                      </DropdownMenuItem>
+                      {game.price_turkey && (
+                        <DropdownMenuItem 
+                          onClick={() => handleAddToCart(game, 'turkey')}
+                          className="text-green-400 hover:bg-[#d4af37]/20 cursor-pointer"
+                        >
+                          🇹🇷 Турция — {game.price_turkey} ₽
+                        </DropdownMenuItem>
+                      )}
+                      {game.price_ukraine && (
+                        <DropdownMenuItem 
+                          onClick={() => handleAddToCart(game, 'ukraine')}
+                          className="text-blue-400 hover:bg-[#d4af37]/20 cursor-pointer"
+                        >
+                          🇺🇦 Украина — {game.price_ukraine} ₽
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </CardContent>
               </Card>
             ))}
