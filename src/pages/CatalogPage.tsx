@@ -241,6 +241,9 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                     {game.categories.includes('subscription') && (
                       <Badge className="bg-cyan-500 text-white text-xs">🎫 Подписка</Badge>
                     )}
+                    {game.categories.includes('topup') && (
+                      <Badge className="bg-green-500 text-white text-xs">💳 Пополнение</Badge>
+                    )}
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
                     {game.platform.map((p) => (

@@ -386,9 +386,10 @@ export function AdminPage() {
                               c === 'exclusive' ? 'bg-purple-500' :
                               c === 'popular' ? 'bg-[#d4af37] text-black' :
                               c === 'subscription' ? 'bg-cyan-500' :
+                              c === 'topup' ? 'bg-green-500' :
                               'bg-slate-600'
                             }`}>
-                              {c === 'sale' ? 'Sale' : c === 'exclusive' ? 'Эксклюзив' : c === 'popular' ? '★' : c === 'subscription' ? 'Подписка' : c}
+                              {c === 'sale' ? 'Sale' : c === 'exclusive' ? 'Эксклюзив' : c === 'popular' ? '★' : c === 'subscription' ? 'Подписка' : c === 'topup' ? 'Пополнение' : c}
                             </Badge>
                           ))}
                         </div>
@@ -639,6 +640,7 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
             { id: 'exclusive', label: 'Эксклюзив' },
             { id: 'sale', label: 'Распродажа' },
             { id: 'subscription', label: 'Подписки' },
+            { id: 'topup', label: 'Коды пополнения' },
           ].map((cat) => (
             <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
               <Checkbox 

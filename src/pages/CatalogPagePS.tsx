@@ -8,7 +8,8 @@ import {
   Percent,
   Plus,
   PackageX,
-  RefreshCw
+  RefreshCw,
+  Tag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,7 @@ const PS_FILTERS = [
   { id: 'exclusive', label: 'Эксклюзивы', icon: Flame, color: 'text-purple-400' },
   { id: 'sale', label: 'Распродажа', icon: Percent, color: 'text-red-400' },
   { id: 'subscription', label: 'Подписки', icon: Percent, color: 'text-cyan-400' },
+  { id: 'topup', label: 'Коды пополнения', icon: Tag, color: 'text-green-400' },
 ];
 
 export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
@@ -236,6 +238,9 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
                     )}
                     {game.categories.includes('subscription') && (
                       <Badge className="bg-cyan-500 text-white text-xs">🎫 Подписка</Badge>
+                    )}
+                    {game.categories.includes('topup') && (
+                      <Badge className="bg-green-500 text-white text-xs">💳 Пополнение</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">

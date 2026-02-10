@@ -5,7 +5,6 @@ import {
   ShoppingCart, 
   MessageCircle, 
   HelpCircle, 
-  Info, 
   Settings,
   Menu,
   X,
@@ -221,7 +220,6 @@ export function MainNavigation({ isAdmin = false }: MainNavigationProps) {
   const moreItems: NavigationItem[] = [
     { id: 'faq', name: 'FAQ', icon: HelpCircle, path: '/faq', color: 'text-[#b8860b]' },
     { id: 'support', name: 'Поддержка', icon: MessageCircle, path: '/support', color: 'text-slate-400' },
-    { id: 'about', name: 'О нас', icon: Info, path: '/about', color: 'text-slate-400' },
   ];
 
   const isActive = (path: string) => location.pathname === path;

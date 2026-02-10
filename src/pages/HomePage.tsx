@@ -4,11 +4,7 @@ import {
   ShoppingCart, 
   HelpCircle, 
   MessageCircle, 
-  Info, 
-  Settings,
-  Star,
-  TrendingUp,
-  Tag
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,15 +69,7 @@ export function HomePage({ isAdmin }: HomePageProps) {
       color: 'from-slate-700 to-slate-800',
       features: ['24/7', 'Telegram', 'WhatsApp', 'Email']
     },
-    {
-      id: 'about',
-      name: 'О нас',
-      description: 'Информация о Village Store',
-      icon: Info,
-      path: '/about',
-      color: 'from-slate-800 to-slate-900',
-      features: ['История', 'Команда', 'Миссия', 'Контакты']
-    }
+
   ];
 
   const adminSection = {
@@ -225,40 +213,7 @@ export function HomePage({ isAdmin }: HomePageProps) {
           </div>
         </div>
 
-        {/* Статистика */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#d4af37]/20">
-            <CardContent className="p-3 text-center">
-              <Gamepad2 className="w-6 h-6 text-[#d4af37] mx-auto mb-1" />
-              <div className="text-xl font-bold text-white">1000+</div>
-              <div className="text-slate-400 text-xs">Игр</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#cd7f32]/20">
-            <CardContent className="p-3 text-center">
-              <Star className="w-6 h-6 text-[#cd7f32] mx-auto mb-1" />
-              <div className="text-xl font-bold text-white">50+</div>
-              <div className="text-slate-400 text-xs">Эксклюзивов</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#daa520]/20">
-            <CardContent className="p-3 text-center">
-              <TrendingUp className="w-6 h-6 text-[#daa520] mx-auto mb-1" />
-              <div className="text-xl font-bold text-white">5000+</div>
-              <div className="text-slate-400 text-xs">Клиентов</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-[#b8860b]/20">
-            <CardContent className="p-3 text-center">
-              <Tag className="w-6 h-6 text-[#b8860b] mx-auto mb-1" />
-              <div className="text-xl font-bold text-white">До -70%</div>
-              <div className="text-slate-400 text-xs">Скидки</div>
-            </CardContent>
-          </Card>
-        </div>
+
       </div>
     </div>
   );
