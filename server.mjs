@@ -101,6 +101,8 @@ app.post('/api/games', async (req, res) => {
     const platformJson = JSON.stringify(platform || []);
     const categoriesJson = JSON.stringify(categories || []);
 
+    console.log('SQL params:', { title, price, original_price: original_price || null, priceTurkeyNum, priceUkraineNum });
+    
     const [row] = await sql`
       INSERT INTO games (title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image)
       VALUES (${title}, ${price}, ${original_price || null}, ${priceTurkeyNum}, ${priceUkraineNum}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
@@ -108,6 +110,7 @@ app.post('/api/games', async (req, res) => {
     `;
     
     console.log('POST /api/games - saved data:', row);
+    console.log('Saved price_turkey:', row.price_turkey, 'type:', typeof row.price_turkey);
 
     res.status(201).json(normalizeGameRow(row));
   } catch (error) {
