@@ -259,15 +259,34 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                 </CardHeader>
 
                 <CardContent className="pt-0 pb-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <div>
-                      {game.original_price && (
-                        <span className="text-slate-500 line-through text-sm mr-2">
-                          {game.original_price} ₽
-                        </span>
-                      )}
-                      <span className="text-[#d4af37] text-lg font-bold">{game.price} ₽</span>
+                  {/* Цены по регионам */}
+                  <div className="space-y-1 mb-3">
+                    {/* Основная цена */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 text-xs">Стандарт</span>
+                      <div>
+                        {game.original_price && (
+                          <span className="text-slate-500 line-through text-xs mr-1">
+                            {game.original_price} ₽
+                          </span>
+                        )}
+                        <span className="text-[#d4af37] font-bold">{game.price} ₽</span>
+                      </div>
                     </div>
+                    {/* Турция */}
+                    {game.price_turkey && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-xs">🇹🇷 Турция</span>
+                        <span className="text-green-400 font-bold">{game.price_turkey} ₽</span>
+                      </div>
+                    )}
+                    {/* Украина */}
+                    {game.price_ukraine && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-xs">🇺🇦 Украина</span>
+                        <span className="text-blue-400 font-bold">{game.price_ukraine} ₽</span>
+                      </div>
+                    )}
                   </div>
                   <Button 
                     className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold text-sm"
