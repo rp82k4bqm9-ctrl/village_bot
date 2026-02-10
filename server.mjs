@@ -89,6 +89,13 @@ app.post('/api/games', async (req, res) => {
     const { title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image } = req.body;
     
     console.log('POST /api/games - received data:', { title, price, original_price, price_turkey, price_ukraine });
+    console.log('Types:', { price_turkey: typeof price_turkey, price_ukraine: typeof price_ukraine });
+
+    // Преобразуем цены в числа
+    const priceTurkeyNum = price_turkey ? Number(price_turkey) : null;
+    const priceUkraineNum = price_ukraine ? Number(price_ukraine) : null;
+    
+    console.log('Converted:', { priceTurkeyNum, priceUkraineNum });
 
     // Преобразуем массивы в JSON для полей jsonb
     const platformJson = JSON.stringify(platform || []);
@@ -96,7 +103,7 @@ app.post('/api/games', async (req, res) => {
 
     const [row] = await sql`
       INSERT INTO games (title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image)
-      VALUES (${title}, ${price}, ${original_price || null}, ${price_turkey || null}, ${price_ukraine || null}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
+      VALUES (${title}, ${price}, ${original_price || null}, ${priceTurkeyNum}, ${priceUkraineNum}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
       RETURNING *
     `;
     
@@ -119,6 +126,10 @@ app.put('/api/games/:id', async (req, res) => {
     const { id } = req.params;
     const { title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image } = req.body;
 
+    // Преобразуем цены в числа
+    const priceTurkeyNum = price_turkey ? Number(price_turkey) : null;
+    const priceUkraineNum = price_ukraine ? Number(price_ukraine) : null;
+
     // Преобразуем массивы в JSON для полей jsonb
     const platformJson = JSON.stringify(platform || []);
     const categoriesJson = JSON.stringify(categories || []);
@@ -128,8 +139,8 @@ app.put('/api/games/:id', async (req, res) => {
       SET title = ${title},
           price = ${price},
           original_price = ${original_price || null},
-          price_turkey = ${price_turkey || null},
-          price_ukraine = ${price_ukraine || null},
+          price_turkey = ${priceTurkeyNum},
+          price_ukraine = ${priceUkraineNum},
           description = ${description || ''},
           image = ${image || ''},
           platform = ${platformJson}::jsonb,
