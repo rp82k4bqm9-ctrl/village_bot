@@ -103,9 +103,14 @@ app.post('/api/games', async (req, res) => {
 
     console.log('SQL params:', { title, price, original_price: original_price || null, priceTurkeyNum, priceUkraineNum });
     
+    // Явно проверяем значения перед вставкой
+    const pt = priceTurkeyNum !== null && priceTurkeyNum !== undefined ? priceTurkeyNum : null;
+    const pu = priceUkraineNum !== null && priceUkraineNum !== undefined ? priceUkraineNum : null;
+    console.log('Final values:', { pt, pu });
+    
     const [row] = await sql`
       INSERT INTO games (title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image)
-      VALUES (${title}, ${price}, ${original_price || null}, ${priceTurkeyNum}, ${priceUkraineNum}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
+      VALUES (${title}, ${price}, ${original_price || null}, ${pt}, ${pu}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
       RETURNING *
     `;
     
