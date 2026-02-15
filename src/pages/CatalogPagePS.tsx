@@ -38,6 +38,8 @@ const PS_FILTERS = [
   { id: 'sale', label: 'Распродажа', icon: Percent, color: 'text-red-400' },
   { id: 'subscription', label: 'Подписки', icon: Percent, color: 'text-cyan-400' },
   { id: 'topup', label: 'Коды пополнения', icon: Tag, color: 'text-green-400' },
+  { id: 'turkey', label: '🇹🇷 Турция', icon: Filter, color: 'text-emerald-400' },
+  { id: 'ukraine', label: '🇺🇦 Украина', icon: Filter, color: 'text-blue-400' },
 ];
 
 export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
@@ -257,6 +259,12 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
                     )}
                     {game.categories.includes('topup') && (
                       <Badge className="bg-green-500 text-white text-xs">💳 Пополнение</Badge>
+                    )}
+                    {game.categories.includes('turkey') && (
+                      <Badge className="bg-emerald-500 text-white text-xs">🇹🇷 Турция</Badge>
+                    )}
+                    {game.categories.includes('ukraine') && (
+                      <Badge className="bg-blue-500 text-white text-xs">🇺🇦 Украина</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
