@@ -83,8 +83,6 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
         if (['PS5', 'PS4', 'Xbox Series X/S', 'Xbox One'].includes(activeFilter)) {
           return game.platform.includes(activeFilter);
         }
-        if (activeFilter === 'turkey') return !!game.price_turkey;
-        if (activeFilter === 'ukraine') return !!game.price_ukraine;
         return game.categories.includes(activeFilter);
       });
     }
@@ -251,6 +249,12 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                     )}
                     {game.categories.includes('topup') && (
                       <Badge className="bg-green-500 text-white text-xs">💳 Пополнение</Badge>
+                    )}
+                    {game.categories.includes('turkey') && (
+                      <Badge className="bg-emerald-500 text-white text-xs">🇹🇷 Турция</Badge>
+                    )}
+                    {game.categories.includes('ukraine') && (
+                      <Badge className="bg-blue-500 text-white text-xs">🇺🇦 Украина</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
