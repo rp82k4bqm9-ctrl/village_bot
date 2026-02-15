@@ -32,6 +32,8 @@ const PLATFORM_FILTERS = [
   { id: 'exclusive', label: 'Эксклюзивы', icon: Flame, color: 'text-purple-400' },
   { id: 'sale', label: 'Распродажа', icon: Percent, color: 'text-red-400' },
   { id: 'subscription', label: 'Подписки', icon: Percent, color: 'text-cyan-400' },
+  { id: 'turkey', label: '🇹🇷 Турция', icon: Filter, color: 'text-emerald-400' },
+  { id: 'ukraine', label: '🇺🇦 Украина', icon: Filter, color: 'text-blue-400' },
 ];
 
 export function CatalogPage({ isAdmin }: CatalogPageProps) {
@@ -81,6 +83,8 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
         if (['PS5', 'PS4', 'Xbox Series X/S', 'Xbox One'].includes(activeFilter)) {
           return game.platform.includes(activeFilter);
         }
+        if (activeFilter === 'turkey') return !!game.price_turkey;
+        if (activeFilter === 'ukraine') return !!game.price_ukraine;
         return game.categories.includes(activeFilter);
       });
     }

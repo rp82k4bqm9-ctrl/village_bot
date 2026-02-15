@@ -21,3 +21,7 @@ CREATE TABLE IF NOT EXISTS content_blocks (
   content JSONB NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Миграция: добавить колонки цен для региона (если их ещё нет)
+ALTER TABLE games ADD COLUMN IF NOT EXISTS price_turkey INTEGER NULL;
+ALTER TABLE games ADD COLUMN IF NOT EXISTS price_ukraine INTEGER NULL;

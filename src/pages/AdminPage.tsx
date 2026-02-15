@@ -120,8 +120,6 @@ export function AdminPage() {
         title: formData.title,
         price: Number(formData.price),
         original_price: formData.original_price ? Number(formData.original_price) : undefined,
-        price_turkey: formData.price_turkey ? Number(formData.price_turkey) : undefined,
-        price_ukraine: formData.price_ukraine ? Number(formData.price_ukraine) : undefined,
         platform: formData.platform || [],
         categories: formData.categories || [],
         description: formData.description || ''
@@ -148,8 +146,6 @@ export function AdminPage() {
         title: formData.title,
         price: Number(formData.price),
         original_price: formData.original_price ? Number(formData.original_price) : undefined,
-        price_turkey: formData.price_turkey ? Number(formData.price_turkey) : undefined,
-        price_ukraine: formData.price_ukraine ? Number(formData.price_ukraine) : undefined,
         platform: formData.platform || [],
         categories: formData.categories || [],
         description: formData.description || ''
@@ -181,8 +177,6 @@ export function AdminPage() {
       title: '',
       price: 0,
       original_price: undefined,
-      price_turkey: undefined,
-      price_ukraine: undefined,
       platform: [],
       categories: [],
       description: '',
@@ -617,29 +611,6 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
             value={formData.original_price || ''}
             onChange={(e) => setFormData({ ...formData, original_price: e.target.value ? Number(e.target.value) : undefined })}
             placeholder="4999"
-            className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label className="text-slate-300">🇹🇷 Турция (₽)</Label>
-          <Input
-            type="number"
-            value={formData.price_turkey || ''}
-            onChange={(e) => setFormData({ ...formData, price_turkey: e.target.value ? Number(e.target.value) : undefined })}
-            placeholder="2499"
-            className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
-          />
-        </div>
-        <div>
-          <Label className="text-slate-300">🇺🇦 Украина (₽)</Label>
-          <Input
-            type="number"
-            value={formData.price_ukraine || ''}
-            onChange={(e) => setFormData({ ...formData, price_ukraine: e.target.value ? Number(e.target.value) : undefined })}
-            placeholder="2999"
             className="bg-[#0d0d0d] border-slate-600 text-white mt-1"
           />
         </div>
