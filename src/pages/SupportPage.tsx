@@ -1,6 +1,5 @@
 import { 
   MessageCircle, 
-  Mail, 
   Clock,
   Send,
   AlertCircle
@@ -19,31 +18,12 @@ const CONTACTS = [
     color: 'from-[#0088cc] to-[#005885]',
     description: 'Самый быстрый способ связи',
     badge: 'Рекомендуем'
-  },
-  {
-    id: 'whatsapp',
-    icon: MessageCircle,
-    title: 'WhatsApp',
-    value: '+7 (999) 123-45-67',
-    link: 'https://wa.me/79991234567',
-    color: 'from-[#25d366] to-[#128c7e]',
-    description: 'Для вопросов и заказов'
-  },
-  {
-    id: 'email',
-    icon: Mail,
-    title: 'Email',
-    value: 'support@village.store',
-    link: 'mailto:support@village.store',
-    color: 'from-[#ea4335] to-[#c5221f]',
-    description: 'Для сложных вопросов'
   }
 ];
 
 const WORKING_HOURS = [
-  { day: 'Понедельник - Пятница', hours: '10:00 - 22:00' },
-  { day: 'Суббота', hours: '11:00 - 20:00' },
-  { day: 'Воскресенье', hours: '12:00 - 18:00' },
+  { day: 'Понедельник - Пятница', hours: '11:00 - 01:00' },
+  { day: 'Суббота - Воскресенье', hours: '12:00 - 02:00' },
 ];
 
 export function SupportPage() {

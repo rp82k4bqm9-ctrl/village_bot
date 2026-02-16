@@ -67,7 +67,7 @@ export function HomePage({ isAdmin }: HomePageProps) {
       icon: MessageCircle,
       path: '/support',
       color: 'from-slate-700 to-slate-800',
-      features: ['24/7', 'Telegram', 'WhatsApp', 'Email']
+      features: ['Telegram', 'Быстрый ответ']
     },
 
   ];
