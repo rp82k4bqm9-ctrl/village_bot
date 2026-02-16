@@ -15,12 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
 import { getGames, type Game } from '@/services/api';
@@ -39,7 +33,7 @@ const PS_FILTERS = [
   { id: 'subscription', label: 'Подписки', icon: Percent, color: 'text-cyan-400' },
   { id: 'topup', label: 'Коды пополнения', icon: Tag, color: 'text-green-400' },
   { id: 'turkey', label: '🇹🇷 Турция', icon: Filter, color: 'text-emerald-400' },
-  { id: 'ukraine', label: '🇺🇦 Украина', icon: Filter, color: 'text-blue-400' },
+  { id: 'india', label: '🇮🇳 Индия', icon: Filter, color: 'text-blue-400' },
 ];
 
 export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
@@ -58,11 +52,7 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
       setError(null);
       const data = await getGames();
       console.log('Loaded games:', data);
-      console.log('First game prices:', data[0] ? { 
-        price: data[0].price, 
-        price_turkey: data[0].price_turkey, 
-        price_ukraine: data[0].price_ukraine 
-      } : 'no games');
+      console.log('First game:', data[0] ? { price: data[0].price } : 'no games');
       // Фильтруем только PlayStation игры
       const psGames = data.filter(game => 
         game.platform.some(p => p.includes('PS'))
@@ -106,19 +96,15 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
     setFilteredGames(filtered);
   }, [games, searchQuery, activeFilter]);
 
-  const handleAddToCart = (game: Game, region: 'standard' | 'turkey' | 'ukraine' = 'standard') => {
+  const handleAddToCart = (game: Game) => {
     addItem({
       id: game.id,
       title: game.title,
       price: game.price,
-      price_turkey: game.price_turkey,
-      price_ukraine: game.price_ukraine,
-      selectedRegion: region,
       type: 'ps-game',
       image: game.image
     });
-    const regionName = region === 'turkey' ? ' (Турция)' : region === 'ukraine' ? ' (Украина)' : '';
-    toast.success(`${game.title}${regionName} добавлена в корзину!`);
+    toast.success(`${game.title} добавлена в корзину!`);
   };
 
   const getPlatformColor = (platform: string) => {
@@ -263,8 +249,8 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
                     {game.categories.includes('turkey') && (
                       <Badge className="bg-emerald-500 text-white text-xs">🇹🇷 Турция</Badge>
                     )}
-                    {game.categories.includes('ukraine') && (
-                      <Badge className="bg-blue-500 text-white text-xs">🇺🇦 Украина</Badge>
+                    {game.categories.includes('india') && (
+                      <Badge className="bg-blue-500 text-white text-xs">🇮🇳 Индия</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
@@ -281,69 +267,25 @@ export function CatalogPagePS({ isAdmin }: CatalogPagePSProps) {
                 </CardHeader>
 
                 <CardContent className="pt-0 pb-3">
-                  {/* Цены по регионам */}
-                  <div className="space-y-1 mb-3">
-                    {/* Основная цена */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400 text-xs">Стандарт</span>
-                      <div>
-                        {game.original_price && (
-                          <span className="text-slate-500 line-through text-xs mr-1">
-                            {game.original_price} ₽
-                          </span>
-                        )}
-                        <span className="text-[#d4af37] font-bold">{game.price} ₽</span>
-                      </div>
+                  {/* Цена */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-slate-400 text-sm">Цена</span>
+                    <div>
+                      {game.original_price && (
+                        <span className="text-slate-500 line-through text-sm mr-2">
+                          {game.original_price} ₽
+                        </span>
+                      )}
+                      <span className="text-[#d4af37] text-lg font-bold">{game.price} ₽</span>
                     </div>
-                    {/* Турция */}
-                    {game.price_turkey && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400 text-xs">🇹🇷 Турция</span>
-                        <span className="text-green-400 font-bold">{game.price_turkey} ₽</span>
-                      </div>
-                    )}
-                    {/* Украина */}
-                    {game.price_ukraine && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400 text-xs">🇺🇦 Украина</span>
-                        <span className="text-blue-400 font-bold">{game.price_ukraine} ₽</span>
-                      </div>
-                    )}
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold text-sm"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        В корзину
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[#1a1a1a] border-[#d4af37]/30">
-                      <DropdownMenuItem 
-                        onClick={() => handleAddToCart(game, 'standard')}
-                        className="text-white hover:bg-[#d4af37]/20 cursor-pointer"
-                      >
-                        Стандарт — {game.price} ₽
-                      </DropdownMenuItem>
-                      {game.price_turkey && (
-                        <DropdownMenuItem 
-                          onClick={() => handleAddToCart(game, 'turkey')}
-                          className="text-green-400 hover:bg-[#d4af37]/20 cursor-pointer"
-                        >
-                          🇹🇷 Турция — {game.price_turkey} ₽
-                        </DropdownMenuItem>
-                      )}
-                      {game.price_ukraine && (
-                        <DropdownMenuItem 
-                          onClick={() => handleAddToCart(game, 'ukraine')}
-                          className="text-blue-400 hover:bg-[#d4af37]/20 cursor-pointer"
-                        >
-                          🇺🇦 Украина — {game.price_ukraine} ₽
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <Button 
+                    className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold text-sm"
+                    onClick={() => handleAddToCart(game)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    В корзину
+                  </Button>
                 </CardContent>
               </Card>
             ))}

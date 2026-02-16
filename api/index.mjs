@@ -21,7 +21,7 @@ function normalizeGameRow(row) {
     price: row.price,
     original_price: row.original_price,
     price_turkey: row.price_turkey != null ? Number(row.price_turkey) : undefined,
-    price_ukraine: row.price_ukraine != null ? Number(row.price_ukraine) : undefined,
+    price_india: row.price_india != null ? Number(row.price_india) : undefined,
     platform: row.platform || [],
     categories: row.categories || [],
     description: row.description ?? '',

@@ -387,10 +387,10 @@ export function AdminPage() {
                               c === 'subscription' ? 'bg-cyan-500' :
                               c === 'topup' ? 'bg-green-500' :
                               c === 'turkey' ? 'bg-emerald-500' :
-                              c === 'ukraine' ? 'bg-blue-500' :
+                              c === 'india' ? 'bg-blue-500' :
                               'bg-slate-600'
                             }`}>
-                              {c === 'sale' ? 'Sale' : c === 'exclusive' ? 'Эксклюзив' : c === 'popular' ? '★' : c === 'subscription' ? 'Подписка' : c === 'topup' ? 'Пополнение' : c === 'turkey' ? '🇹🇷 Турция' : c === 'ukraine' ? '🇺🇦 Украина' : c}
+                              {c === 'sale' ? 'Sale' : c === 'exclusive' ? 'Эксклюзив' : c === 'popular' ? '★' : c === 'subscription' ? 'Подписка' : c === 'topup' ? 'Пополнение' : c === 'turkey' ? '🇹🇷 Турция' : c === 'india' ? '🇮🇳 Индия' : c}
                             </Badge>
                           ))}
                         </div>
@@ -643,7 +643,7 @@ function GameForm({ formData, setFormData, onSubmit, onCancel, togglePlatform, t
             { id: 'subscription', label: 'Подписки' },
             { id: 'topup', label: 'Коды пополнения' },
             { id: 'turkey', label: '🇹🇷 Турция' },
-            { id: 'ukraine', label: '🇺🇦 Украина' },
+            { id: 'india', label: '🇮🇳 Индия' },
           ].map((cat) => (
             <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
               <Checkbox 

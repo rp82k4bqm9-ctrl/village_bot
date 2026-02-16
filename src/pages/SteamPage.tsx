@@ -46,7 +46,6 @@ export function SteamPage() {
       id: `steam-topup-${amount}`,
       title: `Пополнение Steam ${amount} ₽ (${steamLogin})`,
       price: amount,
-      selectedRegion: 'standard',
       type: 'steam',
     });
     toast.success(`Пополнение Steam на ${amount} ₽ добавлено в корзину!`);
@@ -75,7 +74,6 @@ export function SteamPage() {
       id: game.id,
       title: game.title,
       price: game.price,
-      selectedRegion: 'standard',
       type: 'steam-game',
     });
     toast.success(`${game.title} добавлена в корзину!`);

@@ -45,7 +45,7 @@ function normalizeGameRow(row) {
     price: row.price,
     original_price: row.original_price,
     price_turkey: row.price_turkey,
-    price_ukraine: row.price_ukraine,
+    price_india: row.price_india,
     platform: parseDbArray(row.platform),
     categories: parseDbArray(row.categories),
     description: row.description ?? '',
@@ -69,9 +69,9 @@ app.use(express.json());
 app.get('/api/games', async (req, res) => {
   try {
     const rows = await sql`SELECT * FROM games ORDER BY created_at DESC`;
-    console.log('GET /api/games - raw rows:', rows.map(r => ({ id: r.id, title: r.title, price_turkey: r.price_turkey, price_ukraine: r.price_ukraine })));
+    console.log('GET /api/games - raw rows:', rows.map(r => ({ id: r.id, title: r.title, price_turkey: r.price_turkey, price_india: r.price_india })));
     const normalized = rows.map(normalizeGameRow);
-    console.log('GET /api/games - normalized:', normalized.map(g => ({ id: g.id, price_turkey: g.price_turkey, price_ukraine: g.price_ukraine })));
+    console.log('GET /api/games - normalized:', normalized.map(g => ({ id: g.id, price_turkey: g.price_turkey, price_india: g.price_india })));
     res.status(200).json(normalized);
   } catch (error) {
     console.error('GET /api/games error:', error);
@@ -86,14 +86,14 @@ app.post('/api/games', async (req, res) => {
       return res.status(403).json({ error: 'Доступ запрещен' });
     }
 
-    const { title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image } = req.body;
+    const { title, price, original_price, price_turkey, price_india, platform, categories, description, image } = req.body;
     
-    console.log('POST /api/games - received data:', { title, price, original_price, price_turkey, price_ukraine });
-    console.log('Types:', { price_turkey: typeof price_turkey, price_ukraine: typeof price_ukraine });
+    console.log('POST /api/games - received data:', { title, price, original_price, price_turkey, price_india });
+    console.log('Types:', { price_turkey: typeof price_turkey, price_india: typeof price_india });
 
     // Преобразуем цены в числа
     const priceTurkeyNum = price_turkey ? Number(price_turkey) : null;
-    const priceUkraineNum = price_ukraine ? Number(price_ukraine) : null;
+    const priceUkraineNum = price_india ? Number(price_india) : null;
     
     console.log('Converted:', { priceTurkeyNum, priceUkraineNum });
 
@@ -109,7 +109,7 @@ app.post('/api/games', async (req, res) => {
     console.log('Final values:', { pt, pu });
     
     const [row] = await sql`
-      INSERT INTO games (title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image)
+      INSERT INTO games (title, price, original_price, price_turkey, price_india, platform, categories, description, image)
       VALUES (${title}, ${price}, ${original_price || null}, ${pt}, ${pu}, ${platformJson}::jsonb, ${categoriesJson}::jsonb, ${description || ''}, ${image || ''})
       RETURNING *
     `;
@@ -132,11 +132,11 @@ app.put('/api/games/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { title, price, original_price, price_turkey, price_ukraine, platform, categories, description, image } = req.body;
+    const { title, price, original_price, price_turkey, price_india, platform, categories, description, image } = req.body;
 
     // Преобразуем цены в числа
     const priceTurkeyNum = price_turkey ? Number(price_turkey) : null;
-    const priceUkraineNum = price_ukraine ? Number(price_ukraine) : null;
+    const priceUkraineNum = price_india ? Number(price_india) : null;
 
     // Преобразуем массивы в JSON для полей jsonb
     const platformJson = JSON.stringify(platform || []);
@@ -148,7 +148,7 @@ app.put('/api/games/:id', async (req, res) => {
           price = ${price},
           original_price = ${original_price || null},
           price_turkey = ${priceTurkeyNum},
-          price_ukraine = ${priceUkraineNum},
+          price_india = ${priceUkraineNum},
           description = ${description || ''},
           image = ${image || ''},
           platform = ${platformJson}::jsonb,

@@ -12,8 +12,6 @@ export interface Game {
   title: string;
   price: number;
   original_price?: number;
-  price_turkey?: number;
-  price_ukraine?: number;
   platform: string[];
   categories: string[];
   description?: string;
@@ -58,8 +56,6 @@ function normalizeGame(game: unknown): Game {
     title: String(g.title ?? ''),
     price: Number(g.price ?? 0),
     original_price: g.original_price ? Number(g.original_price) : undefined,
-    price_turkey: g.price_turkey ? Number(g.price_turkey) : undefined,
-    price_ukraine: g.price_ukraine ? Number(g.price_ukraine) : undefined,
     platform: parseArrayField(g.platform),
     categories: parseArrayField(g.categories),
     description: g.description ? String(g.description) : undefined,

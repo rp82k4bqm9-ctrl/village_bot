@@ -15,7 +15,6 @@ import {
   CheckCircle,
   ArrowLeft
 } from 'lucide-react';
-import type { CartItem } from '@/contexts/CartContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useCart } from '@/hooks/useCart';
+import type { CartItem } from '@/contexts/CartContext';
 import { BOT_CONFIG } from '@/config/bot';
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -55,15 +55,9 @@ async function sendOrderToTelegram(orderData: {
     comment?: string;
   };
 }) {
-  const itemsList = orderData.items.map(item => {
-    const itemPrice = item.selectedRegion === 'turkey' && item.price_turkey 
-      ? item.price_turkey 
-      : item.selectedRegion === 'ukraine' && item.price_ukraine 
-        ? item.price_ukraine 
-        : item.price;
-    const regionLabel = item.selectedRegion === 'turkey' ? ' (🇹🇷 Турция)' : item.selectedRegion === 'ukraine' ? ' (🇺🇦 Украина)' : '';
-    return `• ${item.title}${regionLabel} — ${itemPrice} ₽ x${item.quantity} = ${itemPrice * item.quantity} ₽`;
-  }).join('\n');
+  const itemsList = orderData.items.map(item => 
+    `• ${item.title} — ${item.price} ₽ x${item.quantity} = ${item.price * item.quantity} ₽`
+  ).join('\n');
   
   const telegramLink = orderData.customer.telegramUsername 
     ? `<a href="https://t.me/${orderData.customer.telegramUsername}">@${orderData.customer.telegramUsername}</a>`
@@ -120,7 +114,7 @@ ${orderData.customer.comment ? `\n💬 <b>Комментарий:</b> ${orderDat
 }
 
 export function CartPage() {
-  const { items, removeItem, updateQuantity, updateRegion, clearCart, total } = useCart();
+  const { items, removeItem, updateQuantity, clearCart, total } = useCart();
   const [showCheckout, setShowCheckout] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
@@ -337,20 +331,12 @@ export function CartPage() {
                 <CardContent className="space-y-4">
                   {/* Список товаров */}
                   <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {items.map((item) => {
-                      const itemPrice = item.selectedRegion === 'turkey' && item.price_turkey 
-                        ? item.price_turkey 
-                        : item.selectedRegion === 'ukraine' && item.price_ukraine 
-                          ? item.price_ukraine 
-                          : item.price;
-                      const regionLabel = item.selectedRegion === 'turkey' ? ' (🇹🇷 Турция)' : item.selectedRegion === 'ukraine' ? ' (🇺🇦 Украина)' : '';
-                      return (
-                        <div key={item.id} className="flex justify-between text-sm">
-                          <span className="text-slate-300">{item.title}{regionLabel} x{item.quantity}</span>
-                          <span className="text-[#d4af37]">{itemPrice * item.quantity} ₽</span>
-                        </div>
-                      );
-                    })}
+                    {items.map((item) => (
+                      <div key={item.id} className="flex justify-between text-sm">
+                        <span className="text-slate-300">{item.title} x{item.quantity}</span>
+                        <span className="text-[#d4af37]">{item.price * item.quantity} ₽</span>
+                      </div>
+                    ))}
                   </div>
                   
                   <div className="border-t border-slate-700 pt-4">
@@ -448,45 +434,7 @@ export function CartPage() {
                         {/* Информация */}
                         <div className="flex-1 min-w-0">
                           <h3 className="text-white font-medium truncate">{item.title}</h3>
-                          <div className="flex items-center gap-2">
-                            <p className="text-[#d4af37] font-bold">
-                              {item.selectedRegion === 'turkey' && item.price_turkey 
-                                ? item.price_turkey 
-                                : item.selectedRegion === 'ukraine' && item.price_ukraine 
-                                  ? item.price_ukraine 
-                                  : item.price} ₽
-                            </p>
-                            {item.selectedRegion !== 'standard' && (
-                              <span className="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300">
-                                {item.selectedRegion === 'turkey' ? '🇹🇷 Турция' : '🇺🇦 Украина'}
-                              </span>
-                            )}
-                          </div>
-                          {/* Выбор региона */}
-                          <div className="flex gap-1 mt-1">
-                            <button
-                              onClick={() => updateRegion(item.id, 'standard')}
-                              className={`text-xs px-2 py-0.5 rounded ${item.selectedRegion === 'standard' ? 'bg-[#d4af37] text-black' : 'bg-slate-700 text-slate-300'}`}
-                            >
-                              Стандарт
-                            </button>
-                            {item.price_turkey && (
-                              <button
-                                onClick={() => updateRegion(item.id, 'turkey')}
-                                className={`text-xs px-2 py-0.5 rounded ${item.selectedRegion === 'turkey' ? 'bg-green-500 text-white' : 'bg-slate-700 text-slate-300'}`}
-                              >
-                                🇹🇷 Турция
-                              </button>
-                            )}
-                            {item.price_ukraine && (
-                              <button
-                                onClick={() => updateRegion(item.id, 'ukraine')}
-                                className={`text-xs px-2 py-0.5 rounded ${item.selectedRegion === 'ukraine' ? 'bg-blue-500 text-white' : 'bg-slate-700 text-slate-300'}`}
-                              >
-                                🇺🇦 Украина
-                              </button>
-                            )}
-                          </div>
+                          <p className="text-[#d4af37] font-bold">{item.price} ₽</p>
                         </div>
 
                         {/* Количество */}

@@ -33,7 +33,7 @@ const PLATFORM_FILTERS = [
   { id: 'sale', label: 'Распродажа', icon: Percent, color: 'text-red-400' },
   { id: 'subscription', label: 'Подписки', icon: Percent, color: 'text-cyan-400' },
   { id: 'turkey', label: '🇹🇷 Турция', icon: Filter, color: 'text-emerald-400' },
-  { id: 'ukraine', label: '🇺🇦 Украина', icon: Filter, color: 'text-blue-400' },
+  { id: 'india', label: '🇮🇳 Индия', icon: Filter, color: 'text-blue-400' },
 ];
 
 export function CatalogPage({ isAdmin }: CatalogPageProps) {
@@ -90,20 +90,16 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
     setFilteredGames(filtered);
   }, [games, searchQuery, activeFilter]);
 
-  const handleAddToCart = (game: Game, region: 'standard' | 'turkey' | 'ukraine' = 'standard') => {
+  const handleAddToCart = (game: Game) => {
     const isXbox = game.platform.some(p => p.includes('Xbox'));
     addItem({
       id: game.id,
       title: game.title,
       price: game.price,
-      price_turkey: game.price_turkey,
-      price_ukraine: game.price_ukraine,
-      selectedRegion: region,
       type: isXbox ? 'xbox-game' : 'ps-game',
       image: game.image
     });
-    const regionName = region === 'turkey' ? ' (Турция)' : region === 'ukraine' ? ' (Украина)' : '';
-    toast.success(`${game.title}${regionName} добавлена в корзину!`);
+    toast.success(`${game.title} добавлена в корзину!`);
   };
 
   const getPlatformColor = (platform: string) => {
@@ -253,8 +249,8 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                     {game.categories.includes('turkey') && (
                       <Badge className="bg-emerald-500 text-white text-xs">🇹🇷 Турция</Badge>
                     )}
-                    {game.categories.includes('ukraine') && (
-                      <Badge className="bg-blue-500 text-white text-xs">🇺🇦 Украина</Badge>
+                    {game.categories.includes('india') && (
+                      <Badge className="bg-blue-500 text-white text-xs">🇮🇳 Индия</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-1 mb-2">
@@ -285,20 +281,6 @@ export function CatalogPage({ isAdmin }: CatalogPageProps) {
                         <span className="text-[#d4af37] font-bold">{game.price} ₽</span>
                       </div>
                     </div>
-                    {/* Турция */}
-                    {game.price_turkey && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400 text-xs">🇹🇷 Турция</span>
-                        <span className="text-green-400 font-bold">{game.price_turkey} ₽</span>
-                      </div>
-                    )}
-                    {/* Украина */}
-                    {game.price_ukraine && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400 text-xs">🇺🇦 Украина</span>
-                        <span className="text-blue-400 font-bold">{game.price_ukraine} ₽</span>
-                      </div>
-                    )}
                   </div>
                   <Button 
                     className="w-full bg-gradient-to-r from-[#d4af37] to-[#cd7f32] hover:from-[#b8941f] hover:to-[#a06829] text-black font-semibold text-sm"
