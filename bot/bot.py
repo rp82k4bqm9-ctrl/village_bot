@@ -110,14 +110,15 @@ async def id_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     is_user_admin = is_admin(user.id)
     
-    text = f"""
-🆔 <b>Твой Telegram ID:</b> <code>{user.id}</code>
+    admin_status = '👑 Статус: Администратор' if is_user_admin else '👤 Статус: Пользователь'
+    admin_access = '✅ У тебя есть доступ к админ-панели!' if is_user_admin else '❌ У тебя нет доступа к админ-панели.\nОтправь этот ID владельцу для получения доступа.'
+    
+    text = f"""🆔 <b>Твой Telegram ID:</b> <code>{user.id}</code>
 
 👤 Имя: {user.first_name}
-{'👑 Статус: Администратор' if is_user_admin else '👤 Статус: Пользователь'}
+{admin_status}
 
-{'✅ У тебя есть доступ к админ-панели!' if is_user_admin else '❌ У тебя нет доступа к админ-панели.\nОтправь этот ID владельцу для получения доступа.'}
-    """.strip()
+{admin_access}"""
     
     await update.message.reply_text(text, parse_mode='HTML')
 
