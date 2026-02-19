@@ -13,8 +13,8 @@ const CONTACTS = [
     id: 'telegram',
     icon: MessageCircle,
     title: 'Telegram',
-    value: '@village_support',
-    link: 'https://t.me/village_support',
+    value: '@village_podderzhka',
+    link: 'https://t.me/village_podderzhka',
     color: 'from-[#0088cc] to-[#005885]',
     description: 'Самый быстрый способ связи',
     badge: 'Рекомендуем'
@@ -116,7 +116,7 @@ export function SupportPage() {
               <p className="mb-4">Напишите нам в Telegram с названием игры - мы оформим заказ за вас!</p>
               <Button 
                 className="w-full bg-[#0088cc] hover:bg-[#006699] text-white"
-                onClick={() => window.open('https://t.me/village_support', '_blank')}
+                onClick={() => window.open('https://t.me/village_podderzhka', '_blank')}
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 Написать в Telegram
@@ -136,7 +136,7 @@ export function SupportPage() {
               <Button 
                 variant="outline"
                 className="w-full border-orange-400/50 text-orange-400 hover:bg-orange-400/10"
-                onClick={() => window.open('https://t.me/village_support', '_blank')}
+                onClick={() => window.open('https://t.me/village_podderzhka', '_blank')}
               >
                 Сообщить о проблеме
               </Button>

@@ -135,7 +135,7 @@ export const DEFAULT_FAQ_CONTENT: FaqContentByCategory = {
   support: [
     {
       q: 'Как связаться с поддержкой?',
-      a: 'Напишите нам в Telegram @village_support или на email support@village.store. Мы отвечаем ежедневно с 10:00 до 22:00.',
+      a: 'Напишите нам в Telegram @village_podderzhka. Мы отвечаем ежедневно с 11:00 до 01:00 (пн-пт) и с 12:00 до 02:00 (сб-вс).',
     },
     {
       q: 'Сколько времени занимает ответ?',

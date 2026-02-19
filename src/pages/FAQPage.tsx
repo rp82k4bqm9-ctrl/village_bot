@@ -101,13 +101,13 @@ export function FAQPage() {
             <p className="mb-4">Напишите нам напрямую, мы поможем с любым вопросом!</p>
             <div className="flex flex-wrap gap-4">
               <a 
-                href="https://t.me/village_support" 
+                href="https://t.me/village_podderzhka" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-[#0088cc]/20 text-[#0088cc] rounded-lg hover:bg-[#0088cc]/30 transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
-                Telegram @village_support
+                Telegram @village_podderzhka
               </a>
             </div>
           </CardContent>

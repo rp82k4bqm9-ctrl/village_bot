@@ -9,7 +9,8 @@ import {
   X,
   BarChart3,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,8 +46,12 @@ export function AdminPage() {
     platform: [],
     categories: [],
     description: '',
-
   });
+
+  // Поиск и фильтрация
+  const [searchQuery, setSearchQuery] = useState('');
+  const [platformFilter, setPlatformFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // Управление текстами (FAQ и др.)
   const [isFaqDialogOpen, setIsFaqDialogOpen] = useState(false);
@@ -216,6 +221,23 @@ export function AdminPage() {
     sale: games.filter(g => g.categories.includes('sale')).length,
   };
 
+  // Фильтрация игр
+  const filteredGames = games.filter(game => {
+    // Поиск по названию
+    if (searchQuery && !game.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    // Фильтр по платформе
+    if (platformFilter !== 'all' && !game.platform.includes(platformFilter)) {
+      return false;
+    }
+    // Фильтр по категории
+    if (categoryFilter !== 'all' && !game.categories.includes(categoryFilter)) {
+      return false;
+    }
+    return true;
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -344,10 +366,82 @@ export function AdminPage() {
           </Button>
         </div>
 
+        {/* Поиск и фильтры */}
+        <div className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700 rounded-lg p-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Поиск */}
+            <div>
+              <Label className="text-slate-300 text-sm mb-1 block">Поиск</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Название игры..."
+                  className="bg-[#0d0d0d] border-slate-600 text-white pl-9"
+                />
+              </div>
+            </div>
+            {/* Фильтр платформы */}
+            <div>
+              <Label className="text-slate-300 text-sm mb-1 block">Платформа</Label>
+              <select
+                value={platformFilter}
+                onChange={(e) => setPlatformFilter(e.target.value)}
+                className="w-full bg-[#0d0d0d] border border-slate-600 text-white rounded-md px-3 py-2"
+              >
+                <option value="all">Все платформы</option>
+                <option value="PS5">PS5</option>
+                <option value="PS4">PS4</option>
+                <option value="Xbox Series X/S">Xbox Series</option>
+                <option value="Xbox One">Xbox One</option>
+              </select>
+            </div>
+            {/* Фильтр категории */}
+            <div>
+              <Label className="text-slate-300 text-sm mb-1 block">Категория</Label>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full bg-[#0d0d0d] border border-slate-600 text-white rounded-md px-3 py-2"
+              >
+                <option value="all">Все категории</option>
+                <option value="popular">Популярное</option>
+                <option value="exclusive">Эксклюзив</option>
+                <option value="sale">Распродажа</option>
+                <option value="subscription">Подписки</option>
+                <option value="topup">Коды пополнения</option>
+                <option value="turkey">🇹🇷 Турция</option>
+                <option value="india">🇮🇳 Индия</option>
+              </select>
+            </div>
+          </div>
+          {/* Сброс фильтров */}
+          {(searchQuery || platformFilter !== 'all' || categoryFilter !== 'all') && (
+            <div className="mt-3 flex justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('');
+                  setPlatformFilter('all');
+                  setCategoryFilter('all');
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Сбросить фильтры
+              </Button>
+            </div>
+          )}
+        </div>
+
         {/* Список игр */}
         <div className="space-y-3">
-          <h2 className="text-lg font-bold text-white mb-3">Список игр ({games.length})</h2>
-          {games.length === 0 ? (
+          <h2 className="text-lg font-bold text-white mb-3">
+            Список игр ({filteredGames.length}{games.length !== filteredGames.length && ` из ${games.length}`})
+          </h2>
+          {filteredGames.length === 0 ? (
             <Card className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700">
               <CardContent className="p-8 text-center">
                 <p className="text-slate-400 mb-4">Каталог пуст. Добавьте первую игру!</p>
@@ -362,7 +456,7 @@ export function AdminPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 gap-3">
-              {games.map((game) => (
+              {filteredGames.map((game) => (
                 <Card 
                   key={game.id}
                   className="bg-gradient-to-br from-[#1a1a1a] to-[#0d0d0d] border border-slate-700 hover:border-slate-600 transition-colors"
