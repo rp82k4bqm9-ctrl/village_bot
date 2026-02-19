@@ -39,8 +39,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отправляет приветствие с кнопками"""
     user = update.effective_user
     
-    welcome_text = f"""
-👋 Привет, {user.first_name}!
+    welcome_text = f"""👋 Привет, {user.first_name}!
+
+Привет этот бот поможет тебе приобрести игры и подписки на XBOX/PlayStation по лучшим ценам!
 
 🎮 Добро пожаловать в <b>Village Gaming Store</b>!
 
